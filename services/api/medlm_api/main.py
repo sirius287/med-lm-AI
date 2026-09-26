@@ -1,9 +1,7 @@
 import json
 import logging
 import time
-from collections import defaultdict, deque
 from contextlib import asynccontextmanager
-from threading import Lock
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
@@ -15,6 +13,13 @@ from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
 from medlm_api.auth import AuthService, SupabaseGateway
+from medlm_api.auth_dependencies import (
+    check_origin,
+    credentials,
+    current_identity,
+    owned_connection,
+)
+from medlm_api.auth_rate_limit import AuthRateLimiter
 from medlm_api.config import Settings
 from medlm_api.database import Database
 from medlm_api.errors import AppError
@@ -42,8 +47,7 @@ def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
     db = Database(settings)
     provider = gateway or SupabaseGateway(settings)
     auth = AuthService(settings, db, provider)
-    attempts: dict[str, deque] = defaultdict(deque)
-    rate_lock = Lock()
+    limiter = AuthRateLimiter(settings, db)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -53,6 +57,7 @@ def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
 
     app = FastAPI(title="MedLM API", version=settings.version, lifespan=lifespan)
     app.state.database, app.state.auth = db, auth
+    app.state.settings = settings
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -99,7 +104,18 @@ def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
 
     @app.exception_handler(AppError)
     async def app_error(request, exc):
-        return error_response(request, exc.status, exc.code, exc.message, exc.retryable)
+        response = error_response(request, exc.status, exc.code, exc.message, exc.retryable)
+        if exc.status == 429:
+            response.headers["Retry-After"] = "60"
+        if exc.status == 401 and request.cookies.get("medlm_session"):
+            response.delete_cookie(
+                "medlm_session",
+                path="/",
+                httponly=True,
+                secure=settings.cookie_secure,
+                samesite="lax",
+            )
+        return response
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(request, exc):
@@ -125,36 +141,9 @@ def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
         )
         return error_response(request, 500, "internal_error", "The request could not be completed.")
 
-    def check_origin(request: Request):
-        if request.headers.get("origin") not in settings.cors_origins:
-            raise AppError(403, "origin_denied", "Request origin is not allowed.")
-
     def limit_auth(request: Request):
         check_origin(request)
-        key = request.client.host if request.client else "unknown"
-        with rate_lock:
-            now = time.monotonic()
-            for stale in [k for k, q in attempts.items() if not q or q[-1] < now - 60]:
-                del attempts[stale]
-            q = attempts[key]
-            while q and q[0] < now - 60:
-                q.popleft()
-            if len(q) >= 10:
-                raise AppError(429, "rate_limited", "Try again later.", True)
-            q.append(now)
-
-    def current(request: Request):
-        bearer = request.headers.get("authorization", "")
-        if bearer.startswith("Bearer "):
-            token = bearer[7:]
-            return auth.native(token), None, token
-        cookie = request.cookies.get("medlm_session")
-        if not cookie:
-            raise AppError(401, "authentication_required", "Sign in to continue.")
-        mutation = request.method not in ("GET", "HEAD", "OPTIONS")
-        if mutation:
-            check_origin(request)
-        return auth.web(cookie, request.headers.get("x-csrf-token"), mutation)
+        limiter.check(request.client.host if request.client else "unknown")
 
     router = APIRouter(prefix=settings.api_prefix)
 
@@ -183,21 +172,27 @@ def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
         return {"user_id": str(principal.user_id), "csrf_token": csrf}
 
     @router.get("/auth/session")
-    def session(identity=Depends(current)):
-        principal, csrf, _ = identity
-        return {"user_id": str(principal.user_id), "csrf_token": csrf}
+    def session(identity=Depends(current_identity)):
+        return {"user_id": str(identity.principal.user_id), "csrf_token": identity.csrf_token}
 
     @router.delete("/auth/session", status_code=204)
-    def logout(request: Request, response: Response, identity=Depends(current)):
-        principal, _, token = identity
-        auth.logout(principal, token, request.cookies.get("medlm_session"))
+    def logout(request: Request, response: Response):
+        bearer, cookie = credentials(request)
+        if bearer:
+            auth.logout_native(bearer)
+        else:
+            check_origin(request)
+            if cookie:
+                auth.logout_web(cookie, request.headers.get("x-csrf-token"))
         response.delete_cookie(
             "medlm_session", path="/", httponly=True, secure=settings.cookie_secure, samesite="lax"
         )
 
     @router.get("/health/database")
-    def database_health(identity=Depends(current)):
-        db.ping()
+    def database_health(connection=Depends(owned_connection)):
+        from sqlalchemy import text
+
+        connection.scalar(text("SELECT 1"))
         return {"status": "ok"}
 
     app.include_router(router)

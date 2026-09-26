@@ -11,6 +11,40 @@ abstract interface class AuthService {
   Future<String?> restoreUserId();
 }
 
+/// Coordinates adapter requests; SDK refresh deduplication remains in place too.
+class NativeTokenAccess {
+  NativeTokenAccess(this.resolve);
+  final Future<String?> Function() resolve;
+  Future<String?>? _pending;
+  bool _blocked = false;
+  void enable() => _blocked = false;
+  Future<String?> token() async {
+    if (_blocked) return null;
+    final pending = _pending ??= Future<String?>.sync(
+      resolve,
+    ).timeout(const Duration(seconds: 15));
+    try {
+      final value = await pending;
+      return _blocked ? null : value;
+    } on ApiException {
+      rethrow;
+    } on Object {
+      throw const ApiException('session_refresh_failed');
+    } finally {
+      if (identical(_pending, pending)) _pending = null;
+    }
+  }
+
+  Future<void> blockAndDrain() async {
+    _blocked = true;
+    try {
+      await _pending;
+    } on Object {
+      // Cleanup proceeds even if a refresh already in flight failed.
+    }
+  }
+}
+
 class SecureSessionStorage extends LocalStorage {
   const SecureSessionStorage();
   static const _store = FlutterSecureStorage();
@@ -42,12 +76,22 @@ Future<void> initializeNativeAuth(AppConfig config) async {
 }
 
 class NativeAuthService implements AuthService {
-  NativeAuthService(this.api, this.config);
+  NativeAuthService(
+    this.api,
+    this.config, {
+    this.tokenAccess,
+    GoTrueClient Function()? client,
+    LocalStorage? storage,
+  }) : _client = client ?? (() => Supabase.instance.client.auth),
+       _storage = storage ?? const SecureSessionStorage();
   final ApiClient api;
   final AppConfig config;
+  final NativeTokenAccess? tokenAccess;
+  final GoTrueClient Function() _client;
+  final LocalStorage _storage;
   GoTrueClient get _auth {
     if (!config.authConfigured) throw const ApiException('auth_not_configured');
-    return Supabase.instance.client.auth;
+    return _client();
   }
 
   @override
@@ -58,18 +102,32 @@ class NativeAuthService implements AuthService {
   @override
   Future<void> login(String email, String password) async {
     await _auth.signInWithPassword(email: email, password: password);
-    await api.request('GET', '/auth/session', authenticated: true);
+    tokenAccess?.enable();
+    try {
+      await api.request('GET', '/auth/session', authenticated: true);
+    } on ApiException catch (error) {
+      if (error.status == 401) await _clearLocal();
+      rethrow;
+    }
   }
 
   @override
   Future<String?> restoreUserId() async {
     if (!config.authConfigured || _auth.currentSession == null) return null;
-    return (await api.request(
-          'GET',
-          '/auth/session',
-          authenticated: true,
-        ))['user_id']
-        as String?;
+    try {
+      return (await api.request(
+            'GET',
+            '/auth/session',
+            authenticated: true,
+          ))['user_id']
+          as String?;
+    } on ApiException catch (error) {
+      if (error.status == 401) {
+        await _clearLocal();
+        return null;
+      }
+      rethrow;
+    }
   }
 
   @override
@@ -77,8 +135,25 @@ class NativeAuthService implements AuthService {
     try {
       await api.request('DELETE', '/auth/session', authenticated: true);
     } finally {
-      await _auth.signOut(scope: SignOutScope.local);
-      await const SecureSessionStorage().removePersistedSession();
+      await _clearLocal();
+    }
+  }
+
+  Future<void> _clearLocal() async {
+    await tokenAccess?.blockAndDrain();
+    api.csrfToken = null;
+    try {
+      await _auth
+          .signOut(scope: SignOutScope.local)
+          .timeout(const Duration(seconds: 10));
+    } on Object {
+      // SDK clears in-memory session before provider sign-out. Never expose raw errors.
+    } finally {
+      try {
+        await _storage.removePersistedSession();
+      } on Object {
+        throw const ApiException('local_session_cleanup_failed');
+      }
     }
   }
 }

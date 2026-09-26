@@ -23,6 +23,8 @@ Status: proposed controls, not a security certification. India-first launch, res
 
 ## Authentication and authorization
 
+Implemented email/password session controls and limitations are specified in [ADR 0003](docs/adr/0003-auth-session-hardening.md). OAuth/PKCE below remains future design. Provider identity lookup is not evidence of remote session-row existence; local revocation and disabled-account checks enforce app logout. Live provider revocation behavior remains unvalidated, and clinical endpoints remain disabled.
+
 Supabase Auth is the identity provider. Use verified JWT signatures against configured issuer JWKS, exact audience and expiration checks; cache signing keys safely and refresh on rotation. Native clients keep refresh tokens in Keychain/Keystore or a vetted desktop credential vault. Browser auth uses same-origin FastAPI session exchange, PKCE/state, Secure/HttpOnly/SameSite cookies and CSRF tokens; browser JavaScript never holds long-lived refresh credentials. Restrict OAuth redirect allowlists. [Supabase JWT documentation](https://supabase.com/docs/guides/auth/jwts).
 
 JWT signature validation alone does not make logout immediate. FastAPI checks disabled-account state and revoked `session_id` on every personal-data request; app logout records revocation before upstream sign-out. For sensitive actions also verify the upstream session remains valid through a narrow server-side check. Deny access if required revocation state cannot be checked. This is an application control rather than an assumption about stateless tokens. [Supabase session behavior](https://supabase.com/docs/guides/auth/sessions).

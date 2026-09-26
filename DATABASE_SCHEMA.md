@@ -6,6 +6,8 @@ Status: logical target schema; initial subset implemented in migration 0001_foun
 
 ## Entities
 
+Chunk 2 migration `0003_auth_session_hardening` adds `medlm_auth.web_sessions.provider_session_id` and private `medlm_auth.auth_throttles` only. Legacy rows bind lazily after verification; auth grants now name tables explicitly. Revocation tombstones are not purged merely on access-token expiry. See [ADR 0003](docs/adr/0003-auth-session-hardening.md).
+
 Every personal table includes `user_id` even where derivable. Composite parent references `(user_id,parent_id)` prevent cross-owner relationships; parent tables expose unique `(user_id,id)`. All foreign keys specify an intentional delete behavior. JSONB is for versioned schemas/evidence payloads, not a substitute for ownership or relational constraints.
 
 | Table | Main columns and relationships | Constraints / lifecycle |

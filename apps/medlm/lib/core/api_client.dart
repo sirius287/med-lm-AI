@@ -40,6 +40,7 @@ class ApiClient {
           ? <String, dynamic>{}
           : jsonDecode(response.body) as Map<String, dynamic>;
       if (response.statusCode >= 400) {
+        if (response.statusCode == 401) csrfToken = null;
         throw ApiException(
           decoded['error']?['code'] as String? ?? 'request_failed',
           status: response.statusCode,

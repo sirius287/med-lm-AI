@@ -15,6 +15,15 @@ final localeProvider = StateProvider<Locale>((ref) => const Locale('en', 'IN'));
 final startupProvider = FutureProvider<void>(
   (ref) => initializeNativeAuth(ref.read(configProvider)),
 );
+final nativeTokenProvider = Provider<NativeTokenAccess>((ref) {
+  final config = ref.watch(configProvider);
+  return NativeTokenAccess(() async {
+    if (kIsWeb || !config.authConfigured) return null;
+    final auth = Supabase.instance.client.auth;
+    if (auth.currentSession?.isExpired ?? false) await auth.refreshSession();
+    return auth.currentSession?.accessToken;
+  });
+});
 final apiProvider = Provider<ApiClient>((ref) {
   final config = ref.watch(configProvider);
   final client = createHttpClient();
@@ -22,16 +31,15 @@ final apiProvider = Provider<ApiClient>((ref) {
   return ApiClient(
     config.apiBaseUrl,
     client,
-    accessToken: () async {
-      if (kIsWeb || !config.authConfigured) return null;
-      final auth = Supabase.instance.client.auth;
-      if (auth.currentSession?.isExpired ?? false) await auth.refreshSession();
-      return auth.currentSession?.accessToken;
-    },
+    accessToken: ref.watch(nativeTokenProvider).token,
   );
 });
 final authProvider = Provider<AuthService>(
   (ref) => kIsWeb
       ? WebAuthService(ref.watch(apiProvider))
-      : NativeAuthService(ref.watch(apiProvider), ref.watch(configProvider)),
+      : NativeAuthService(
+          ref.watch(apiProvider),
+          ref.watch(configProvider),
+          tokenAccess: ref.watch(nativeTokenProvider),
+        ),
 );

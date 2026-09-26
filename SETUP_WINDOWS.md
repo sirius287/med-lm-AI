@@ -55,9 +55,11 @@ Set `.env` MEDLM_DATABASE_URL to the **medlm_runtime** connection before startin
 
 ## Run backend
 
+For Chunk 2, apply migrations through `0003_auth_session_hardening`, then reapply `database/runtime_grants.sql` with the owner account. Upload grants remain absent. Set `MEDLM_AUTH_RATE_LIMIT_KEY` to an independent random secret (at least 32 characters) shared across API instances; production requires it. Optional `MEDLM_SESSION_DECRYPTION_KEYS` is a JSON array of up to three previous Fernet keys. Never retire old keys before sessions are rewritten or their original maximum lifetime elapses. See ADR 0003 for rotation and legacy-session limitations.
+
 ```powershell
 $env:PYTHONPATH = 'services/api;packages/backend_domain'
-uv run uvicorn medlm_api.main:app --host 127.0.0.1 --port 8000 --no-access-log
+uv run uvicorn medlm_api.main:app --host 127.0.0.1 --port 8000 --no-access-log --no-proxy-headers
 ```
 
 In another terminal:
@@ -90,6 +92,15 @@ flutter build apk --debug
 Replace DEVICE_ID with `flutter devices` output; physical devices need your host's LAN address instead of 10.0.2.2. Native authentication additionally needs public `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_PUBLISHABLE_KEY=...`. There is no sign-in screen in Phase 1. iOS must be built/tested on macOS with Xcode; generated files on Windows are not proof of an iOS build. Release signing is not configured.
 
 ## Tests and contracts
+
+Optional bounded session maintenance (root directory, runtime database URL, no provider call):
+
+```powershell
+$env:PYTHONPATH = 'services/api;packages/backend_domain'
+uv run python -m medlm_api.session_maintenance --batch-size 500
+```
+
+This removes expired browser sessions/throttle buckets only; provider-session revocation tombstones are retained. No automatic maintenance schedule is installed. Migration/auth integration tests also need `MEDLM_MIGRATION_TEST_ADMIN_URL` pointing to a disposable local cluster with database/role creation privileges; they create/drop their own randomly named databases. Never point this variable at production.
 
 From repository root:
 

@@ -1,6 +1,7 @@
 from typing import Literal
 from urllib.parse import urlparse
 
+from cryptography.fernet import Fernet
 from pydantic import SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -14,6 +15,8 @@ class Settings(BaseSettings):
     supabase_url: str | None = None
     supabase_publishable_key: SecretStr | None = None
     session_encryption_key: SecretStr | None = None
+    session_decryption_keys: list[SecretStr] = []
+    auth_rate_limit_key: SecretStr | None = None
     cors_origins: list[str] = ["http://localhost:8080", "http://127.0.0.1:8080"]
     cookie_secure: bool = False
     session_ttl_seconds: int = 86400
@@ -24,6 +27,20 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_security(self):
+        keys = (
+            [self.session_encryption_key] if self.session_encryption_key else []
+        ) + self.session_decryption_keys
+        try:
+            for key in keys:
+                Fernet(key.get_secret_value().encode())
+        except (ValueError, TypeError) as exc:
+            raise ValueError("Invalid session encryption configuration") from exc
+        if self.session_decryption_keys and not self.session_encryption_key:
+            raise ValueError("Primary session key required")
+        if len(self.session_decryption_keys) > 3:
+            raise ValueError("At most three fallback session keys")
+        if self.auth_rate_limit_key and len(self.auth_rate_limit_key.get_secret_value()) < 32:
+            raise ValueError("Rate limit key requires at least 32 characters")
         if self.api_prefix != "/api/v1":
             raise ValueError("The versioned API prefix must be /api/v1")
         if "*" in self.cors_origins:
@@ -43,6 +60,7 @@ class Settings(BaseSettings):
                     self.supabase_url,
                     self.supabase_publishable_key,
                     self.session_encryption_key,
+                    self.auth_rate_limit_key,
                 )
             ):
                 raise ValueError("Production authentication configuration is required")

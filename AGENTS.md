@@ -4,7 +4,7 @@
 
 MedLM AI is an India-first, five-platform medication information and management application. Read ARCHITECTURE.md, REQUIREMENTS.md, API_SPEC.md, DATABASE_SCHEMA.md, SECURITY.md, AI_PIPELINE.md and DEVELOPMENT_PLAN.md before relevant changes. These describe a proposed design, not implemented features.
 
-The user authorized Phase 1 foundation implementation and its initial commit. Stay within the current authorized phase; do not begin Phase 2 automatically. Work within that scope without repeatedly asking for approval for routine reversible changes. Do not publish or deploy unless instructed. Inspect git state first and preserve user work. See PHASE_1_REPORT.md for implemented behavior and validation limits.
+Phase 1 is complete at 3b59d92; Phase 2 Chunk 1 is accepted and uncommitted. The user authorized Chunk 2 authentication/session hardening and client-adapter corrections; see docs/adr/0003-auth-session-hardening.md. Do not implement storage/uploads, clinical features, OAuth, authentication screens, CI or live integrations in this chunk. Do not commit, publish or deploy. Inspect git state first and preserve user work. See PHASE_1_REPORT.md for baseline behavior and validation limits.
 
 ## Medical safety invariants
 
