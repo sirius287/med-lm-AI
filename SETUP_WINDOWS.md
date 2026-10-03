@@ -131,3 +131,11 @@ Remove-Item Env:MEDLM_DATABASE_URL
 ```
 
 Without MEDLM_TEST_DATABASE_URL, database tests explicitly skip. Migration downgrade destroys the application schemas: use only a disposable database for round-trip validation. Do not run downgrade against live data.
+
+## Chunk 4 account UI validation
+
+Home now opens Account for email/password registration, sign-in and sign-out. Home and Settings remain accessible without an account. Existing native Supabase configuration and Web backend cookie/CSRF configuration still apply; this chunk does not provision a provider or credentials. An unavailable provider/configuration displays an unavailable state. Registration instructions do not prove email delivery. Use synthetic accounts only during authorized integration validation.
+
+From `apps/medlm`, run `flutter test test/auth_controller_test.dart test/auth_ui_test.dart` for the new controller/UI checks. The full `flutter test` suite also retains the previous authentication and synthetic upload adapter tests. Run `flutter build apk --debug` for the Android build in addition to the Web command above.
+
+Before release, manually check Android TalkBack and browser screen-reader reading order, status announcements, keyboard focus, software-keyboard layout and 200% text/zoom in both themes and all three languages. Obtain human review of Hindi/Telugu UI copy. Automated widget accessibility tests and successful builds do not replace these checks or validate live provider behavior. iOS and desktop remain unvalidated in this chunk.

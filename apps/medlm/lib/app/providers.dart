@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../auth/auth_service.dart';
+import '../auth/auth_controller.dart';
 import '../core/api_client.dart';
 import '../core/config.dart';
 import '../core/http_client.dart';
@@ -42,4 +43,15 @@ final authProvider = Provider<AuthService>(
           ref.watch(configProvider),
           tokenAccess: ref.watch(nativeTokenProvider),
         ),
+);
+
+final accountProvider = ChangeNotifierProvider<AuthController>(
+  (ref) => AuthController(
+    ref.watch(authProvider),
+    available: kIsWeb || ref.watch(configProvider).authConfigured,
+    initialize: () {
+      if (ref.read(startupProvider).hasError) ref.invalidate(startupProvider);
+      return ref.read(startupProvider.future);
+    },
+  ),
 );

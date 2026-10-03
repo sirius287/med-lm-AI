@@ -5,6 +5,7 @@ import '../core/logging.dart';
 import '../design_system/theme.dart';
 import '../l10n/app_localizations.dart';
 import 'providers.dart';
+import '../auth/auth_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
@@ -13,6 +14,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
       GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+      GoRoute(path: '/account', builder: (_, _) => const AuthScreen()),
     ],
     errorBuilder: (context, _) => Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context)!.notFound)),
@@ -63,23 +65,25 @@ class SplashScreen extends ConsumerWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.health_and_safety_outlined, size: 64),
-              const SizedBox(height: 24),
-              Text(
-                s.appTitle,
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: 16),
-              Text(startup.hasError ? s.startupFailed : s.starting),
-              if (startup.hasError)
-                FilledButton(
-                  onPressed: () => ref.invalidate(startupProvider),
-                  child: Text(s.retry),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.health_and_safety_outlined, size: 64),
+                const SizedBox(height: 24),
+                Text(
+                  s.appTitle,
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
-            ],
+                const SizedBox(height: 16),
+                Text(startup.hasError ? s.startupFailed : s.starting),
+                if (startup.hasError)
+                  FilledButton(
+                    onPressed: () => ref.invalidate(startupProvider),
+                    child: Text(s.retry),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -129,6 +133,13 @@ class HomeScreen extends StatelessWidget {
                     Text(s.intro, style: Theme.of(context).textTheme.bodyLarge),
                     const SizedBox(height: 24),
                     Text(s.comingSoon),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      key: const Key('account'),
+                      onPressed: () => context.push('/account'),
+                      icon: const Icon(Icons.person_outline),
+                      label: Text(s.account),
+                    ),
                   ],
                 ),
               ),
@@ -164,6 +175,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                 key: const Key('theme'),
                 initialValue: ref.watch(themeModeProvider),
                 decoration: InputDecoration(labelText: s.theme),
+                isExpanded: true,
                 items: [
                   DropdownMenuItem(
                     value: ThemeMode.system,
@@ -186,6 +198,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                 key: const Key('language'),
                 initialValue: ref.watch(localeProvider).languageCode,
                 decoration: InputDecoration(labelText: s.language),
+                isExpanded: true,
                 items: const [
                   DropdownMenuItem(value: 'en', child: Text('English')),
                   DropdownMenuItem(value: 'hi', child: Text('हिन्दी')),

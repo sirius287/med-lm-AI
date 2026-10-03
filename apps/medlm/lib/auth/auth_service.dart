@@ -89,6 +89,7 @@ class NativeAuthService implements AuthService {
   final NativeTokenAccess? tokenAccess;
   final GoTrueClient Function() _client;
   final LocalStorage _storage;
+  bool _logoutConfirmed = false;
   GoTrueClient get _auth {
     if (!config.authConfigured) throw const ApiException('auth_not_configured');
     return _client();
@@ -96,11 +97,13 @@ class NativeAuthService implements AuthService {
 
   @override
   Future<void> register(String email, String password) async {
+    _logoutConfirmed = false;
     await _auth.signUp(email: email, password: password);
   }
 
   @override
   Future<void> login(String email, String password) async {
+    _logoutConfirmed = false;
     await _auth.signInWithPassword(email: email, password: password);
     tokenAccess?.enable();
     try {
@@ -132,10 +135,25 @@ class NativeAuthService implements AuthService {
 
   @override
   Future<void> logout() async {
+    ApiException? failure;
     try {
-      await api.request('DELETE', '/auth/session', authenticated: true);
+      if (!_logoutConfirmed) {
+        if (_auth.currentSession == null) {
+          throw const ApiException('native_logout_unconfirmed');
+        }
+        await api.request('DELETE', '/auth/session', authenticated: true);
+        _logoutConfirmed = true;
+      }
+    } on ApiException catch (error) {
+      failure = error;
+    } on Object {
+      failure = const ApiException('native_logout_unconfirmed');
     } finally {
+      // Cleanup failure must take precedence: never claim local sign-out then.
       await _clearLocal();
+    }
+    if (failure != null) {
+      throw ApiException('native_logout_unconfirmed', status: failure.status);
     }
   }
 
@@ -188,6 +206,12 @@ class WebAuthService implements AuthService {
         '/auth/session',
         authenticated: true,
       );
+      if (result['user_id'] is! String ||
+          (result['user_id'] as String).isEmpty ||
+          result['csrf_token'] is! String ||
+          (result['csrf_token'] as String).isEmpty) {
+        throw const ApiException('invalid_session_response');
+      }
       api.csrfToken = result['csrf_token'] as String?;
       return result['user_id'] as String?;
     } on ApiException catch (error) {
@@ -201,7 +225,23 @@ class WebAuthService implements AuthService {
 
   @override
   Future<void> logout() async {
-    await api.request('DELETE', '/auth/session', authenticated: true);
+    // A reload/outage can leave an HttpOnly cookie without its in-memory CSRF.
+    // Recover it inside logout, without restoring signed-in UI state.
+    if (api.csrfToken == null) {
+      final user = await restoreUserId();
+      if (user == null) return; // Verified 401: no usable app session remains.
+      if (api.csrfToken == null) {
+        throw const ApiException('csrf_unavailable');
+      }
+    }
+    try {
+      await api.request('DELETE', '/auth/session', authenticated: true);
+    } on ApiException catch (error) {
+      if (error.status == 403 && error.code == 'csrf_failed') {
+        api.csrfToken = null; // Next explicit retry must bootstrap again.
+      }
+      rethrow;
+    }
     api.csrfToken = null;
   }
 }

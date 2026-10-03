@@ -207,6 +207,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to connect. Please try again.'**
   String get connectionFailed;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signIn;
+
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOut;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccount;
+
+  /// No description provided for @useExistingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Use an existing account'**
+  String get useExistingAccount;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @emailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address.'**
+  String get emailInvalid;
+
+  /// No description provided for @passwordRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 12–128 characters.'**
+  String get passwordRule;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get hidePassword;
+
+  /// No description provided for @signedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in'**
+  String get signedIn;
+
+  /// No description provided for @sessionVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has been verified for this app.'**
+  String get sessionVerified;
+
+  /// No description provided for @authScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical uploads and analysis are not available in this version.'**
+  String get authScope;
+
+  /// No description provided for @authWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking your account…'**
+  String get authWorking;
+
+  /// No description provided for @authFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to sign in. Check your details and try again.'**
+  String get authFailed;
+
+  /// No description provided for @authRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please try again later.'**
+  String get authRateLimited;
+
+  /// No description provided for @registrationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to create an account. Check your details and try again.'**
+  String get registrationFailed;
+
+  /// No description provided for @remoteLogoutUnconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'You are signed out on this device. Server sign-out could not be confirmed; the previous server session may still exist. You can sign in again.'**
+  String get remoteLogoutUnconfirmed;
+
+  /// No description provided for @authUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Account service is unavailable. Please try again.'**
+  String get authUnavailable;
+
+  /// No description provided for @authNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in is not configured on this device yet.'**
+  String get authNotConfigured;
+
+  /// No description provided for @sessionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not verify your session. Account access remains locked until you retry successfully.'**
+  String get sessionUnavailable;
+
+  /// No description provided for @logoutUnconfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-out could not be confirmed. Account access is locked. Retry to confirm sign-out; a server session may still exist.'**
+  String get logoutUnconfirmed;
+
+  /// No description provided for @checkEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'If registration is accepted, follow any confirmation instructions sent to your email, then sign in. Registration alone does not verify a session.'**
+  String get checkEmail;
+
+  /// No description provided for @sessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has ended. Sign in again to continue.'**
+  String get sessionExpired;
 }
 
 class _AppLocalizationsDelegate
