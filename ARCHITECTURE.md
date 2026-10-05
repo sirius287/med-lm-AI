@@ -65,7 +65,7 @@ The server owns identity matching, evidence validation and prescription confirma
 
 Auth issues short-lived JWTs; native clients use bearer tokens. The web app uses a same-origin backend session with HttpOnly cookies and CSRF protection. Domain tables stay in a private database schema; client medical-data access never depends on hiding table names. See [SECURITY.md](SECURITY.md).
 
-Android, iOS and web share the same Flutter feature/domain code, generated API contract and FastAPI domain backend; Windows/macOS remain supported targets. Browser token handling is an adapter: FastAPI owns the web PKCE exchange and refresh lifecycle, and Flutter Web does not use a browser Supabase session for clinical calls. Route `/v1` through the same public origin as the static app. Native auth uses Supabase SDK tokens with server-side session revocation checks.
+Android, iOS and web share the same Flutter feature/domain code, generated API contract and FastAPI domain backend; Windows/macOS remain supported targets. Browser token handling is an adapter: FastAPI owns the web PKCE exchange and refresh lifecycle, and Flutter Web does not use a browser Supabase session for clinical calls. Route `/api/v1` through the same public origin as the static app. Native auth uses Supabase SDK tokens with server-side session revocation checks.
 
 Uploads use a bounded streaming gateway in FastAPI with short-lived, single-use application tickets; storage remains private and backend-only. This corrects the assumption that Supabase's signed upload URL can implement the proposed five-minute ticket: its documented validity is two hours. Phase 1 must measure gateway memory/time limits and deletion behavior before considering a direct-upload optimization. [Supabase signed upload URL](https://supabase.com/docs/reference/javascript/file-buckets-createsigneduploadurl).
 
@@ -177,4 +177,4 @@ Indian catalog/label procurement, permitted AI processing and redistribution, cl
 
 Residual risks are OCR/identity error, unsupported source fields, model/translation drift, notification loss/duplication, offline stale state, processor retention and cost/latency. The design mitigates these through abstention, review, evidence, bounded work and explicit capability limits; production evidence is still required.
 
-Phase 1 will resolve dependency choices and implement only isolated synthetic feasibility prototypes described in DEVELOPMENT_PLAN. Production feature construction follows later phases. Phase 1 has not started.
+Phase 1 is complete at 3b59d92. Phase 2 scope and the currently authorized database-only chunk are recorded in docs/adr/0002-phase-two-scope-and-upload-schema.md. Historical prototype and platform statements do not override that approved scope.

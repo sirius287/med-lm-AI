@@ -4,7 +4,7 @@ Current checkpoint (2026-09-26): Phase 1 and Chunk 2 are committed; accepted Chu
 
 > Phase 1 implementation update (2026-09-24): the foundation is now implemented. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md), [current API contract](contracts/openapi.json) and [scope decisions](docs/adr/0001-phase-one-boundaries.md). The remaining design below describes future behavior, not implemented clinical functionality.
 
-Status: Phase 1 foundation implemented under the subsequent explicit user request. Date: 2026-09-24. India-first launch confirmed. The original sequence below is historical; ADR 0001 defines the revised Phase 1 scope and Phase 2 recommendation. Do not start Phase 2 without authorization.
+Status: Phase 1 foundation implemented under the subsequent explicit user request. Date: 2026-09-24. India-first launch confirmed. The original sequence below is historical; ADR 0001 defines the revised Phase 1 scope and Phase 2 recommendation. Phase 2 scope is now approved; only scope/contracts and database migrations/tests are authorized in the first chunk. ADR 0002 is the current scope authority: Android/Web, email/password, synthetic uploads only; iOS/desktop/OAuth and live-service guarantees are excluded.
 
 ## Phase 0 — Architecture and research (this delivery)
 

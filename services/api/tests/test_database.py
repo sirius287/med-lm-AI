@@ -4,6 +4,8 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from medlm_api.auth import Principal
@@ -30,7 +32,8 @@ def test_connectivity_migration_and_empty_clinical_tables(database_url):
     db = Database(Settings(_env_file=None, environment="test", database_url=database_url))
     assert db.ping()
     with db.transaction() as conn:
-        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0001_foundation"
+        expected = ScriptDirectory.from_config(Config("alembic.ini")).get_current_head()
+        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == expected
         for table in ("medications", "prescriptions", "verification_sources", "dose_events"):
             assert conn.scalar(text(f"SELECT count(*) FROM medlm.{table}")) == 0
     db.close()
