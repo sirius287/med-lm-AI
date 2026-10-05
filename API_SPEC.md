@@ -6,6 +6,8 @@ Status: target design contract v1; contracts/openapi.json is the generated subse
 
 ## Transport and authorization
 
+Chunk 3 implements an explicitly injected synthetic test harness only: upload creation/content/completion/status/preview/deletion/receipts. Normal-app uploads remain 404. The implemented harness contract is [synthetic-openapi.json](contracts/synthetic-openapi.json); exact idempotency, checksum, notice, version and receipt rules are in [ADR 0004](docs/adr/0004-synthetic-upload-runtime.md). No clinical or OAuth endpoint is enabled.
+
 Phase 2 Chunk 2 preserves the implemented email/password routes and success shapes. Hardened session semantics (mixed credentials 400, expired sessions 401/cookie removal, repeatable CSRF-protected logout, 429 with Retry-After, fail-closed outages) are documented in [ADR 0003](docs/adr/0003-auth-session-hardening.md). No upload or OAuth route is enabled.
 
 Phase 2 chunk 1 adds no API endpoints. Existing health and `/api/v1/auth/*` email/password routes remain canonical; `/sessions/*` below is the future OAuth/PKCE design, not a replacement required in Phase 2. Upload routes stay disabled/unimplemented. See [ADR 0002](docs/adr/0002-phase-two-scope-and-upload-schema.md) for the approved synthetic-only boundary.

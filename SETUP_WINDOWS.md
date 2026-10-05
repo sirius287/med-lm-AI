@@ -93,6 +93,8 @@ Replace DEVICE_ID with `flutter devices` output; physical devices need your host
 
 ## Tests and contracts
 
+Chunk 3 synthetic upload tests, separate maintenance commands and restore safeguards are documented in [the local validation runbook](docs/runbooks/synthetic-upload-validation.md). These require migration 0004 in disposable databases and no live provider credentials. The normal app continues to reject uploads.
+
 Optional bounded session maintenance (root directory, runtime database URL, no provider call):
 
 ```powershell

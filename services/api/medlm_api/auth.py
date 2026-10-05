@@ -188,6 +188,11 @@ class SessionRepository:
 
     @staticmethod
     def revoke_in(conn, principal: Principal):
+        # Upload publication takes the same lock before its final access check.
+        conn.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:sid,3))"),
+            {"sid": str(principal.session_id)},
+        )
         conn.execute(
             text("""INSERT INTO medlm_auth.revoked_sessions
               (session_id,user_id,expires_at) VALUES (:sid,:uid,:exp)
@@ -314,6 +319,10 @@ class AuthService:
                 error = exc
         if error:
             raise error
+        # Request work must respect both provider and absolute browser-session expiry.
+        principal = Principal(
+            principal.user_id, principal.session_id, min(principal.expires_at, row["expires_at"])
+        )
         return principal, row["csrf_token"], tokens["access_token"]
 
     def decrypt(self, row):

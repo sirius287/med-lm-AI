@@ -6,6 +6,8 @@ Status: proposed controls, not a security certification. India-first launch, res
 
 ## Trust boundaries and threats
 
+Implemented local synthetic storage controls, explicit test-only admission, separate maintenance role, verified deletion receipts and independent restore ledger are documented in [ADR 0004](docs/adr/0004-synthetic-upload-runtime.md). See the [validation runbook](docs/runbooks/synthetic-upload-validation.md). Normal-app medical uploads stay disabled; local test evidence does not establish deployed scheduling, live-provider deletion or regulatory compliance.
+
 | Threat | Required control | Verification |
 | --- | --- | --- |
 | Cross-user access / guessed IDs | Owner checks, composite owner FKs, database RLS, private storage | Two-user negative tests across every endpoint and worker pathway |

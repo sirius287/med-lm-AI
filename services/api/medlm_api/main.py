@@ -42,8 +42,10 @@ class Health(BaseModel):
     version: str
 
 
-def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
+def create_app(settings: Settings | None = None, gateway=None, *, synthetic_uploads=None) -> FastAPI:
     settings = settings or Settings()
+    if synthetic_uploads is not None and settings.environment != "test":
+        raise ValueError("Uploads are restricted to an explicitly injected synthetic test harness")
     db = Database(settings)
     provider = gateway or SupabaseGateway(settings)
     auth = AuthService(settings, db, provider)
@@ -62,8 +64,11 @@ def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "DELETE"],
-        allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
+        allow_methods=["GET", "POST", "DELETE"] + (["PUT"] if synthetic_uploads else []),
+        allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"] + (
+            ["X-Upload-Ticket", "Idempotency-Key", "If-Match"] if synthetic_uploads else []
+        ),
+        expose_headers=["ETag"] if synthetic_uploads else [],
     )
 
     @app.middleware("http")
@@ -134,6 +139,10 @@ def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
             request, 503, "database_unavailable", "Database is unavailable.", True
         )
 
+    @app.exception_handler(OSError)
+    async def storage_error(request, exc):
+        return error_response(request, 503, "storage_unavailable", "Storage is unavailable.", True)
+
     @app.exception_handler(Exception)
     async def unexpected_error(request, exc):
         logger.error(
@@ -195,6 +204,10 @@ def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
         connection.scalar(text("SELECT 1"))
         return {"status": "ok"}
 
+    if synthetic_uploads is not None:
+        from medlm_api.upload_routes import upload_router
+
+        router.include_router(upload_router(synthetic_uploads))
     app.include_router(router)
     return app
 

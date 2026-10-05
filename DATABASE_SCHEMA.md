@@ -6,6 +6,8 @@ Status: logical target schema; initial subset implemented in migration 0001_foun
 
 ## Entities
 
+Chunk 3 migration `0004_upload_runtime` adds nullable immutable request key/hash/source checksum fields and owner/request uniqueness to uploads, preserving legacy rows. It adds narrowly scoped maintenance-role policies and API health-read policy; opt-in synthetic grants are separate from default runtime grants. Earlier migrations remain unchanged. See [ADR 0004](docs/adr/0004-synthetic-upload-runtime.md) for independent receipt ledger and restore limits.
+
 Chunk 2 migration `0003_auth_session_hardening` adds `medlm_auth.web_sessions.provider_session_id` and private `medlm_auth.auth_throttles` only. Legacy rows bind lazily after verification; auth grants now name tables explicitly. Revocation tombstones are not purged merely on access-token expiry. See [ADR 0003](docs/adr/0003-auth-session-hardening.md).
 
 Phase 2 chunk 1: additive migration `0002_synthetic_uploads` implements only the upload/deletion metadata subset described in [ADR 0002](docs/adr/0002-phase-two-scope-and-upload-schema.md). Its six tables, trigger safeguards, owner policies and guarded downgrade are the implemented contract. The entity catalog below remains the broader target design; it does not imply these other entities exist. Phase 1 tables and runtime privileges remain unchanged.
