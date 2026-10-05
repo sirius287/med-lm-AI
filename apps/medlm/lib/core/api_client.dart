@@ -5,9 +5,10 @@ import 'package:http/http.dart' as http;
 import 'logging.dart';
 
 class ApiException implements Exception {
-  const ApiException(this.code, {this.status});
+  const ApiException(this.code, {this.status, this.fields = const []});
   final String code;
   final int? status;
+  final List<String> fields;
 }
 
 class ApiClient {
@@ -65,6 +66,12 @@ class ApiClient {
         throw ApiException(
           decoded['error']?['code'] as String? ?? 'request_failed',
           status: response.statusCode,
+          fields: (decoded['error']?['field_errors'] as List? ?? [])
+              .whereType<Map>()
+              .map((field) => field['path'])
+              .whereType<String>()
+              .where((path) => RegExp(r'^[a-zA-Z0-9_.]{1,100}$').hasMatch(path))
+              .toList(),
         );
       }
       return decoded;

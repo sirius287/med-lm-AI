@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     supabase_url: str | None = None
     supabase_publishable_key: SecretStr | None = None
     session_encryption_key: SecretStr | None = None
+    medication_encryption_key: SecretStr | None = None
     session_decryption_keys: list[SecretStr] = []
     auth_rate_limit_key: SecretStr | None = None
     cors_origins: list[str] = ["http://localhost:8080", "http://127.0.0.1:8080"]
@@ -30,6 +31,8 @@ class Settings(BaseSettings):
         keys = (
             [self.session_encryption_key] if self.session_encryption_key else []
         ) + self.session_decryption_keys
+        if self.medication_encryption_key:
+            keys.append(self.medication_encryption_key)
         try:
             for key in keys:
                 Fernet(key.get_secret_value().encode())

@@ -1,6 +1,6 @@
 # MedLM AI development plan
 
-Current checkpoint (2026-09-26): Phase 1 and Chunk 2 are committed; accepted Chunk 1 and implemented Chunk 3 remain in the working tree. The user explicitly approved Chunk 4 email/password auth UI, session-aware account navigation, Android/Web accessibility and English/Hindi/Telugu UI localization. [ADR 0005](docs/adr/0005-auth-ui-accessibility.md) defines this boundary; earlier chunk-authorization statements below are historical. Upload UI, CI, operational deployment, live integrations and later chunks remain excluded. Committing is not authorized.
+Current checkpoint (2026-10-05): Phase 1 and Phase 2 Chunks 1–4 are committed through e5f071f. Phase 3A manual-management scope is approved and implemented locally; validation is recorded in docs/PHASE_3A_REPORT.md. ADR 0006 defines the online-only Android/Web boundary. Actual notifications, offline sync, AI/image/prescription processing, live integrations and deployment remain later work. Historical phase descriptions below are target design, not evidence of completed release gates.
 
 > Phase 1 implementation update (2026-09-24): the foundation is now implemented. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md), [current API contract](contracts/openapi.json) and [scope decisions](docs/adr/0001-phase-one-boundaries.md). The remaining design below describes future behavior, not implemented clinical functionality.
 

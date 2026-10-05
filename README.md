@@ -1,6 +1,6 @@
 # MedLM AI
 
-India-first medication information and management application. **Phase 1 foundation only**: there is no medicine identification, medical advice, prescription processing or reminder functionality yet. No clinical records are seeded.
+India-first medication information and management application. **Phase 3A online manual management**: add/edit/remove medications, preview and activate schedules, view today’s doses, record taken/skipped actions and corrections, and view history. No AI, medicine identification, prescription processing, medical-image uploads or notification delivery is enabled. No medical records are seeded.
 
 Shared Flutter Android/iOS/web client, FastAPI backend, PostgreSQL migrations and Supabase authentication adapters. All clinical and AI credentials belong on the backend. Windows/macOS are future native targets; web works as the desktop client in this phase.
 
@@ -34,6 +34,7 @@ Copy `config/backend.env.template` to `.env` and populate only what is needed. L
 | `MEDLM_DATABASE_URL` | Secret psycopg SQLAlchemy runtime connection; migration commands use owner connection |
 | `MEDLM_SUPABASE_URL`, `MEDLM_SUPABASE_PUBLISHABLE_KEY` | Supabase project URL and public API key; never a service-role key |
 | `MEDLM_SESSION_ENCRYPTION_KEY` | Fernet key protecting server-stored refresh/access tokens |
+| `MEDLM_MEDICATION_ENCRYPTION_KEY` | Separate server-only Fernet key for 24-hour manual mutation replay |
 | `MEDLM_CORS_ORIGINS` | JSON list of exact browser origins |
 | `MEDLM_COOKIE_SECURE` | true in HTTPS production |
 | `MEDLM_SESSION_TTL_SECONDS` | Absolute session lifetime, at most 86400 |
@@ -47,10 +48,10 @@ Flutter compile-time settings: `API_BASE_URL`, `APP_ENV`, `SUPABASE_URL`, `SUPAB
 
 `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET/DELETE /api/v1/auth/session` and authenticated `GET /api/v1/health/database` implement the auth foundation. Browser mutations require allowed Origin; authenticated cookie mutations also require X-CSRF-Token. Native clients use Supabase bearer tokens. Missing configuration fails closed. Supabase must use supported asymmetric JWT signing (ES256/RS256); legacy HS256 is deliberately unsupported. Enable email confirmation and configure approved confirmation redirects in Supabase. No OAuth callback/UI is implemented yet.
 
-Medicine, prescription, reminder and upload endpoints are not exposed. Their future behavior stays in API_SPEC.md and domain protocols. Generate the current OpenAPI using `scripts/export_contract.py`.
+Manual `/api/v1/medications` CRUD, schedule preview/activation, `/occurrences/materialize`, `/occurrences`, dose events and `/history` are implemented. Domain POSTs require Idempotency-Key; medication PATCH/DELETE require If-Match. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md). AI/prescription/normal upload endpoints stay absent. Generate contracts using `scripts/export_contract.py` and response bindings using `scripts/generate_manual_client.py`.
 
 ## Tests and limitations
 
-Run `uv run pytest -q`; database tests require an explicitly configured disposable test database and runtime grants. Run Flutter `analyze`, `test`, `build web` and `build apk --debug` from `apps/medlm`. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md) for actual results and limitations.
+Run `uv run pytest -q`; database tests require an explicitly configured disposable test database and runtime grants. Run Flutter `analyze`, `test`, `build web` and `build apk --debug` from `apps/medlm`. See [Phase 3A report](docs/PHASE_3A_REPORT.md) for current results and [PHASE_1_REPORT.md](PHASE_1_REPORT.md) for the historical baseline.
 
-Live Supabase and OpenAI access require external credentials and separate validation. Production additionally requires a shared rate limiter, key rotation and session cleanup, audited image storage/deletion, deployment TLS/CSP and operational controls. In-memory image storage and per-process auth throttling are foundation components, not production infrastructure. Clinical table writes remain disabled until confirmation/state-machine invariants are implemented.
+Live Supabase authentication still requires credentials and validation. OpenAI and medicine-data accounts are unnecessary for this manual-only slice. Before real-user release, validate live authentication, device/browser accessibility, reviewed translations, TLS/CSP, key rotation, maintenance scheduling, backup/restore and privacy/erasure operations. Phase 2 implements database-backed authentication throttling and an isolated synthetic upload harness; it does not enable clinical uploads. Local tests and builds are not production-readiness evidence.

@@ -64,11 +64,11 @@ def create_app(settings: Settings | None = None, gateway=None, *, synthetic_uplo
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "DELETE"] + (["PUT"] if synthetic_uploads else []),
-        allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"] + (
-            ["X-Upload-Ticket", "Idempotency-Key", "If-Match"] if synthetic_uploads else []
+        allow_methods=["GET", "POST", "PATCH", "DELETE"] + (["PUT"] if synthetic_uploads else []),
+        allow_headers=["Content-Type", "Authorization", "X-CSRF-Token", "Idempotency-Key", "If-Match"] + (
+            ["X-Upload-Ticket"] if synthetic_uploads else []
         ),
-        expose_headers=["ETag"] if synthetic_uploads else [],
+        expose_headers=["ETag"],
     )
 
     @app.middleware("http")
@@ -208,6 +208,9 @@ def create_app(settings: Settings | None = None, gateway=None, *, synthetic_uplo
         from medlm_api.upload_routes import upload_router
 
         router.include_router(upload_router(synthetic_uploads))
+    from medlm_api.medication_routes import router as medication_router
+
+    router.include_router(medication_router)
     app.include_router(router)
     return app
 

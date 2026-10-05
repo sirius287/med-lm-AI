@@ -1,5 +1,7 @@
 # MedLM AI architecture
 
+> Current implementation (2026-10-05): Phase 3A adds online manual medication APIs/UI on the existing stack. The server alone generates timezone-aware occurrences; no notifications or offline store are enabled. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md) and [fresh validation](docs/PHASE_3A_REPORT.md). Earlier research/checkpoint sections are historical, not current implementation status.
+
 > Phase 1 implementation update (2026-09-24): the foundation is now implemented. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md), [current API contract](contracts/openapi.json) and [scope decisions](docs/adr/0001-phase-one-boundaries.md). The remaining design below describes future behavior, not implemented clinical functionality.
 
 Status: Phase 1 foundation implemented; clinical features remain proposed. Research date: 2026-09-24. Recommendations below are design decisions, not claims of clinical validation or deployment readiness.

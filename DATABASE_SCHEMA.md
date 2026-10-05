@@ -1,5 +1,7 @@
 # MedLM AI database design
 
+> Current implementation (2026-10-05): Phase 3A migration `0005_manual_medications` (file `0005_manual_medication_management.py`) follows 0004 additively. It extends existing `medications`, `medication_schedules`, `dose_occurrences`, `dose_events`, adds `medication_instruction_revisions` and encrypted `idempotency_records`, owner constraints, immutable-history triggers and reviewed runtime grants. Existing logical names `user_medications` / `schedule_revisions` below remain design terminology; do not create duplicate replacements for the implemented tables. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md).
+
 > Phase 1 implementation update (2026-09-24): the foundation is now implemented. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md), [current API contract](contracts/openapi.json) and [scope decisions](docs/adr/0001-phase-one-boundaries.md). The remaining design below describes future behavior, not implemented clinical functionality.
 
 Status: logical target schema; initial subset implemented in migration 0001_foundation. Date: 2026-09-24. PostgreSQL in Supabase, with separate private application and public-reference schemas. UUID primary keys, `timestamptz` for instants, `date`/`time` for local calendar rules, IANA timezone strings, exact `numeric` quantities. All mutable records carry created/updated timestamps and integer version.

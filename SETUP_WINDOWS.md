@@ -89,9 +89,66 @@ flutter run -d DEVICE_ID --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
 flutter build apk --debug
 ```
 
-Replace DEVICE_ID with `flutter devices` output; physical devices need your host's LAN address instead of 10.0.2.2. Native authentication additionally needs public `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_PUBLISHABLE_KEY=...`. There is no sign-in screen in Phase 1. iOS must be built/tested on macOS with Xcode; generated files on Windows are not proof of an iOS build. Release signing is not configured.
+Replace DEVICE_ID with `flutter devices` output; physical devices need your host's LAN address instead of 10.0.2.2. Native authentication additionally needs public `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_PUBLISHABLE_KEY=...`. Email/password screens and session-aware manual-management navigation are implemented; live provider validation remains separate. iOS must be built/tested on macOS with Xcode; generated files on Windows are not proof of an iOS build. Release signing is not configured.
 
 ## Tests and contracts
+
+### Phase 3A manual management
+
+Migration `0005_manual_medications` is additive and follows 0004. Use the owner URL
+only for migrations, then apply `database/runtime_grants.sql` and restore the
+least-privilege runtime connection. Do not downgrade a database containing user data.
+
+From the repository root, with the existing local PostgreSQL setup:
+
+```powershell
+$env:MEDLM_DATABASE_URL = Read-Host 'Local database migration-owner SQLAlchemy URL'
+uv run alembic upgrade head
+# Use the matching local database and migration-owner connection for this command.
+& "$pgBin\psql.exe" -h 127.0.0.1 -U medlm_owner -d medlm_dev -v ON_ERROR_STOP=1 -f database/runtime_grants.sql
+$env:MEDLM_DATABASE_URL = Read-Host 'Local medlm_runtime SQLAlchemy URL'
+# Generate ONCE, keep private and persist securely for subsequent API restarts.
+# This key is separate from MEDLM_SESSION_ENCRYPTION_KEY.
+$env:MEDLM_MEDICATION_ENCRYPTION_KEY = uv run python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
+$env:PYTHONPATH = 'services/api;packages/backend_domain'
+uv run uvicorn medlm_api.main:app --host 127.0.0.1 --port 8000
+```
+
+These commands do not provision Supabase. Actual app login needs the existing
+Supabase email/password configuration; missing credentials fail closed. Local automated
+tests inject synthetic authentication adapters and never enable a development login bypass.
+
+Use Login → Home/Today → Add medication. Enter literal instructions and explicit schedule
+inputs, save, review the preview and activate. Today/history use Asia/Kolkata day boundaries;
+each schedule retains its own entered timezone. No OS notifications or offline writes exist.
+“Include removed records” makes retained history records accessible for later explicit erasure.
+
+Reproduce the contract and client response bindings:
+
+```powershell
+$env:PYTHONPATH = 'services/api;packages/backend_domain'
+uv run python scripts/export_contract.py
+uv run python scripts/export_contract.py --synthetic
+uv run python scripts/generate_manual_client.py
+uv run python scripts/generate_manual_client.py --check
+```
+
+For isolated local expiry validation, provision the separate role and apply its grants
+as an administrator (once, in a disposable test cluster):
+
+```powershell
+& "$pgBin\psql.exe" -h 127.0.0.1 -U medlm_owner -d medlm_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE medlm_medication_maintenance NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS' -f database/medication_maintenance_grants.sql
+# Supply a local connection explicitly configured to SET ROLE medlm_medication_maintenance.
+$env:MEDLM_DATABASE_URL = Read-Host 'Local expiry-only maintenance SQLAlchemy URL'
+uv run python -m medlm_api.medication_maintenance
+Remove-Item Env:MEDLM_DATABASE_URL
+```
+
+Do not rerun CREATE ROLE if it already exists. No recurring scheduler is installed.
+Before deployment, separately provision a maintenance identity, schedule expiry cleanup,
+monitor lag, validate secret rotation, backups and restoration erasure. The command deletes
+only expired replay records and needs no decryption key. Active-database erasure does not
+claim deletion from backups. See ADR 0006 and the Phase 3A report for remaining gates.
 
 Chunk 3 synthetic upload tests, separate maintenance commands and restore safeguards are documented in [the local validation runbook](docs/runbooks/synthetic-upload-validation.md). These require migration 0004 in disposable databases and no live provider credentials. The normal app continues to reject uploads.
 

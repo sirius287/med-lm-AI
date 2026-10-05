@@ -25,6 +25,15 @@ class AuthController extends ChangeNotifier {
   AccountStatus status = AccountStatus.initial;
   bool busy = false;
   String? errorCode;
+  String? userId;
+
+  void expire() {
+    userId = null;
+    status = AccountStatus.signedOut;
+    errorCode = 'session_expired';
+    _emit();
+  }
+
   bool _disposed = false;
 
   void _emit() {
@@ -41,6 +50,7 @@ class AuthController extends ChangeNotifier {
       await action();
     } on ApiException catch (error) {
       if (error.code == 'native_logout_unconfirmed') {
+        userId = null;
         status = AccountStatus.signedOut;
         errorCode = 'remote_logout_unconfirmed';
         return;
@@ -80,7 +90,8 @@ class AuthController extends ChangeNotifier {
     // Hide verified UI while revalidation is in progress or fails.
     status = AccountStatus.initial;
     await _run(() async {
-      status = await service.restoreUserId() == null
+      userId = await service.restoreUserId();
+      status = userId == null
           ? AccountStatus.signedOut
           : AccountStatus.signedIn;
       if (wasSignedIn && status == AccountStatus.signedOut) {
@@ -110,6 +121,7 @@ class AuthController extends ChangeNotifier {
           throw const ApiException('invalid_session', status: 401);
         }
         status = AccountStatus.signedIn;
+        userId = user;
       }
     });
   }
@@ -117,6 +129,7 @@ class AuthController extends ChangeNotifier {
   Future<void> logout() async {
     if (busy) return;
     status = AccountStatus.logoutUnconfirmed;
+    userId = null;
     await _run(() async {
       await service.logout();
       status = AccountStatus.signedOut;

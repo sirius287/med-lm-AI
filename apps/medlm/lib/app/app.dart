@@ -6,6 +6,13 @@ import '../design_system/theme.dart';
 import '../l10n/app_localizations.dart';
 import 'providers.dart';
 import '../auth/auth_screen.dart';
+import '../auth/auth_controller.dart';
+import '../medications/medication_shell.dart';
+import '../medications/dashboard_screen.dart';
+import '../medications/medication_list_screen.dart';
+import '../medications/medication_detail_screen.dart';
+import '../medications/medication_form_screen.dart';
+import '../medications/history_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
@@ -15,6 +22,30 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
       GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
       GoRoute(path: '/account', builder: (_, _) => const AuthScreen()),
+      GoRoute(
+        path: '/medications',
+        builder: (_, _) => const MedicationShell(child: MedicationListScreen()),
+      ),
+      GoRoute(
+        path: '/medications/new',
+        builder: (_, _) => const MedicationShell(child: MedicationFormScreen()),
+      ),
+      GoRoute(
+        path: '/medications/:id',
+        builder: (_, state) => MedicationShell(
+          child: MedicationDetailScreen(id: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/medications/:id/edit',
+        builder: (_, state) => MedicationShell(
+          child: MedicationFormScreen(id: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/history',
+        builder: (_, _) => const MedicationShell(child: HistoryScreen()),
+      ),
     ],
     errorBuilder: (context, _) => Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context)!.notFound)),
@@ -53,12 +84,18 @@ class SplashScreen extends ConsumerWidget {
     final s = AppLocalizations.of(context)!;
     final startup = ref.watch(startupProvider);
     ref.listen(startupProvider, (_, next) {
-      if (next.hasValue) context.go('/home');
+      if (next.hasValue) {
+        ref.read(accountProvider).restore();
+        context.go('/home');
+      }
       if (next.hasError) AppLog.startupFailed();
     });
     if (startup.hasValue) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.go('/home');
+        if (context.mounted) {
+          ref.read(accountProvider).restore();
+          context.go('/home');
+        }
       });
     }
     return Scaffold(
@@ -91,11 +128,14 @@ class SplashScreen extends ConsumerWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final s = AppLocalizations.of(context)!;
+    if (ref.watch(accountProvider).status == AccountStatus.signedIn) {
+      return const MedicationShell(child: DashboardScreen());
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(s.appTitle),
@@ -132,7 +172,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     Text(s.intro, style: Theme.of(context).textTheme.bodyLarge),
                     const SizedBox(height: 24),
-                    Text(s.comingSoon),
+                    Text(s.onlineNotice),
                     const SizedBox(height: 24),
                     FilledButton.icon(
                       key: const Key('account'),

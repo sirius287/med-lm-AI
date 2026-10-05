@@ -56,6 +56,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     _password.clear();
     setState(() => _visible = false);
     await controller.submit(_email.text.trim(), password, register: _register);
+    if (mounted && !_register && controller.status == AccountStatus.signedIn) {
+      GoRouter.maybeOf(context)?.go('/home');
+    }
   }
 
   @override

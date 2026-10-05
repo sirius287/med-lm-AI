@@ -63,7 +63,7 @@ def test_real_postgres_rls_isolation(database_url):
             )
             with pytest.raises(DBAPIError):
                 with conn.begin_nested():
-                    conn.execute(text("SELECT * FROM medlm.medications"))
+                    conn.execute(text("SELECT * FROM medlm.prescriptions"))
         finally:
             transaction.rollback()
     engine.dispose()

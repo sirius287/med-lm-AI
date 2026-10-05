@@ -1,5 +1,7 @@
 # MedLM AI requirements
 
+> Current implementation (2026-10-05): Phase 3A implements the manual-entry portion of REM-01, four explicit schedule templates/preview in REM-02, taken/skipped/corrections in REM-03, and versioned edits/removal/history in REM-04. Notifications, snooze, PRN logging and offline/device sync remain unimplemented. Android/Web and en/hi/te UI are the local validation targets; human review and real-device checks remain release gates. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md).
+
 > Phase 1 implementation update (2026-09-24): the foundation is now implemented. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md), [current API contract](contracts/openapi.json) and [scope decisions](docs/adr/0001-phase-one-boundaries.md). The remaining design below describes future behavior, not implemented clinical functionality.
 
 Status: reviewed product baseline. Date: 2026-09-24. Launch market: **India**, confirmed by the user. Required launch languages: **English, Hindi and Telugu** (`en-IN`, `hi-IN`, `te-IN`), subject to clinical translation release gates; licensed data budget remains open. No medical capability is implied outside validated coverage.

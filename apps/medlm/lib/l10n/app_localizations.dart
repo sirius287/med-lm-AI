@@ -289,7 +289,7 @@ abstract class AppLocalizations {
   /// No description provided for @authScope.
   ///
   /// In en, this message translates to:
-  /// **'Medical uploads and analysis are not available in this version.'**
+  /// **'Sign in to manage your manually entered medications. Medical-image processing remains unavailable.'**
   String get authScope;
 
   /// No description provided for @authWorking.
@@ -357,6 +357,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your session has ended. Sign in again to continue.'**
   String get sessionExpired;
+
+  /// No description provided for @medications.
+  ///
+  /// In en, this message translates to:
+  /// **'Medications'**
+  String get medications;
+
+  /// No description provided for @todayDoses.
+  ///
+  /// In en, this message translates to:
+  /// **'Today’s doses'**
+  String get todayDoses;
+
+  /// No description provided for @doseHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose history'**
+  String get doseHistory;
+
+  /// No description provided for @addMedication.
+  ///
+  /// In en, this message translates to:
+  /// **'Add medication'**
+  String get addMedication;
+
+  /// No description provided for @editMedication.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit medication'**
+  String get editMedication;
+
+  /// No description provided for @medicineName.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine name'**
+  String get medicineName;
+
+  /// No description provided for @strengthText.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength (optional)'**
+  String get strengthText;
+
+  /// No description provided for @doseText.
+  ///
+  /// In en, this message translates to:
+  /// **'Dosage / instructions you were given'**
+  String get doseText;
+
+  /// No description provided for @routeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Route (optional)'**
+  String get routeText;
+
+  /// No description provided for @additionalInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional instructions (optional)'**
+  String get additionalInstructions;
+
+  /// No description provided for @manualNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Manually entered · medically unverified. Enter your own instructions. This app does not recommend doses.'**
+  String get manualNotice;
+
+  /// No description provided for @onlineNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Online only. No notifications are sent.'**
+  String get onlineNotice;
+
+  /// No description provided for @scheduleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get scheduleLabel;
+
+  /// No description provided for @dailyTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily at selected times'**
+  String get dailyTimes;
+
+  /// No description provided for @selectedWeekdays.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected weekdays'**
+  String get selectedWeekdays;
+
+  /// No description provided for @fixedInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Explicit interval in hours'**
+  String get fixedInterval;
+
+  /// No description provided for @oneTime.
+  ///
+  /// In en, this message translates to:
+  /// **'One time'**
+  String get oneTime;
+
+  /// No description provided for @timeZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule timezone (IANA name)'**
+  String get timeZone;
+
+  /// No description provided for @clockTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Local times, HH:mm, separated by commas'**
+  String get clockTimes;
+
+  /// No description provided for @weekdaysInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekdays: Mon=0 … Sun=6, separated by commas'**
+  String get weekdaysInput;
+
+  /// No description provided for @intervalHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval hours (entered explicitly)'**
+  String get intervalHours;
+
+  /// No description provided for @anchorInstant.
+  ///
+  /// In en, this message translates to:
+  /// **'First instant: YYYY-MM-DDTHH:mm:ss+05:30 (explicit offset)'**
+  String get anchorInstant;
+
+  /// No description provided for @startDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date (YYYY-MM-DD)'**
+  String get startDate;
+
+  /// No description provided for @endDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End date (YYYY-MM-DD)'**
+  String get endDate;
+
+  /// No description provided for @openEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'I explicitly choose no end date'**
+  String get openEnded;
+
+  /// No description provided for @saveAndPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Save instructions and preview schedule'**
+  String get saveAndPreview;
+
+  /// No description provided for @schedulePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review upcoming doses'**
+  String get schedulePreview;
+
+  /// No description provided for @activateSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm and activate schedule'**
+  String get activateSchedule;
+
+  /// No description provided for @savedNoSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication saved. Schedule is not active yet.'**
+  String get savedNoSchedule;
+
+  /// No description provided for @dstNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Timezone changes require review. For daylight-saving gaps use the next valid time; repeated times occur once.'**
+  String get dstNotice;
+
+  /// No description provided for @taken.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken'**
+  String get taken;
+
+  /// No description provided for @skipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get skipped;
+
+  /// No description provided for @pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Unrecorded'**
+  String get pending;
+
+  /// No description provided for @cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get cancelled;
+
+  /// No description provided for @correctDose.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct recorded action'**
+  String get correctDose;
+
+  /// No description provided for @corrected.
+  ///
+  /// In en, this message translates to:
+  /// **'Correction'**
+  String get corrected;
+
+  /// No description provided for @removeMedication.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove medication'**
+  String get removeMedication;
+
+  /// No description provided for @removeNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this app record and cancel future doses. This does not advise stopping your medicine. History is kept unless you choose erasure.'**
+  String get removeNotice;
+
+  /// No description provided for @eraseHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Also erase this medication and its dose history from the active database'**
+  String get eraseHistory;
+
+  /// No description provided for @cancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelAction;
+
+  /// No description provided for @confirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmAction;
+
+  /// No description provided for @noMedications.
+  ///
+  /// In en, this message translates to:
+  /// **'No medications added yet.'**
+  String get noMedications;
+
+  /// No description provided for @noDoses.
+  ///
+  /// In en, this message translates to:
+  /// **'No scheduled doses for this day.'**
+  String get noDoses;
+
+  /// No description provided for @noHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No recorded actions in this date range.'**
+  String get noHistory;
+
+  /// No description provided for @refreshData.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refreshData;
+
+  /// No description provided for @manualError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete this action. Check your connection and entries, then retry.'**
+  String get manualError;
+
+  /// No description provided for @manualConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This record changed or the preview expired. Reload and review before trying again.'**
+  String get manualConflict;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid value.'**
+  String get requiredField;
+
+  /// No description provided for @viewHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'View history'**
+  String get viewHistory;
+
+  /// No description provided for @applyDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply date range (up to 90 days)'**
+  String get applyDates;
+
+  /// No description provided for @indiaDisplayZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Today and history use Asia/Kolkata. Schedule timezones stay as entered.'**
+  String get indiaDisplayZone;
+
+  /// No description provided for @scheduleActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule active'**
+  String get scheduleActive;
+
+  /// No description provided for @saveUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'The save result is uncertain. Reload this record before editing again.'**
+  String get saveUncertain;
+
+  /// No description provided for @includeRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Include removed records'**
+  String get includeRemoved;
+
+  /// No description provided for @removedRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed; history retained'**
+  String get removedRecord;
 }
 
 class _AppLocalizationsDelegate
