@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
 
+from medlm_domain.analysis import ExtractionResult
+
 
 @dataclass(frozen=True)
 class AnalysisContext:
@@ -15,7 +17,7 @@ class AIService(Protocol):
 
 
 class VisionService(Protocol):
-    async def extract(self, image: bytes, context: AnalysisContext) -> dict: ...
+    async def extract(self, image: bytes, context: AnalysisContext) -> ExtractionResult: ...
 
 
 class MedicineIdentificationService(Protocol):
@@ -27,7 +29,7 @@ class MedicineInformationService(Protocol):
 
 
 class PrescriptionAnalysisService(Protocol):
-    async def draft(self, image: bytes, context: AnalysisContext) -> dict: ...
+    async def draft(self, image: bytes, context: AnalysisContext) -> ExtractionResult: ...
 
 
 class OwnedRepository(Protocol):

@@ -2,6 +2,8 @@
 
 ## Project and current phase
 
+Current authorization (2026-10-06): Phase 3A is committed at f064621. Phase 3B's seven synthetic-only boundaries are approved; implement Chunk 1 contracts/state machine/docs/tests only under docs/adr/0007-phase-3b-synthetic-analysis.md. No migrations, API routes, Flutter UI, credentials or provider calls. No staging/commit is authorized. Earlier scope paragraphs are historical where superseded.
+
 MedLM AI is an India-first, five-platform medication information and management application. Read ARCHITECTURE.md, REQUIREMENTS.md, API_SPEC.md, DATABASE_SCHEMA.md, SECURITY.md, AI_PIPELINE.md and DEVELOPMENT_PLAN.md before relevant changes. These describe a proposed design, not implemented features.
 
 Phase 1 and Phase 2 Chunks 1–4 are committed; Phase 2 HEAD is e5f071f. The user approved Phase 3A online-only manual medication management, schedules, history, additive migrations, Android/Web UI, localization/accessibility and tests. Follow docs/adr/0006-manual-medication-mvp.md and docs/PHASE_3A_REPORT.md. Preserve all Phase 1/2 behavior. Keep normal-app medical uploads, AI, prescriptions, medicine-source integrations, notifications, offline sync, deployment and later phases disabled/out of scope. Do not commit, publish or deploy without explicit authorization. Inspect git state first. Historical checkpoint statements do not override this approved boundary.

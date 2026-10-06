@@ -1,5 +1,7 @@
 # MedLM AI security and privacy design
 
+> Phase 3B Chunk 1 (2026-10-06): pure contracts only; normal medical uploads remain disabled. Synthetic provenance is server-owned metadata, not client authorization. No confidence threshold, user confirmation or configured provider key establishes source verification or opens release gates. Existing independent deletion controls remain unchanged. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+
 > Current implementation (2026-10-05): Phase 3A enables only owner-scoped manual medication data through FastAPI; images and prescription/AI routes remain disabled. It adds a separate encrypted-response key, transaction/session locks, immutable revisions/events, explicit history erasure, 24-hour replay expiry and an expiry-only maintenance role. Personal Flutter state stays in memory and clears on owner/session changes. Local validation does not authorize real-user deployment or establish backup erasure, scheduled maintenance or compliance. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md).
 
 > Phase 1 implementation update (2026-09-24): the foundation is now implemented. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md), [current API contract](contracts/openapi.json) and [scope decisions](docs/adr/0001-phase-one-boundaries.md). The remaining design below describes future behavior, not implemented clinical functionality.

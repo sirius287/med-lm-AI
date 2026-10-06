@@ -1,5 +1,7 @@
 # MedLM AI development plan
 
+Current authorization (2026-10-06): Phase 3A is committed at f064621. Phase 3B Chunk 1 is contracts/state machine/documentation/tests only. The approved seven-chunk order and synthetic-only boundaries are in [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md). Chunk 2 and all runtime integration remain unstarted; no stage/commit authorization.
+
 Current checkpoint (2026-10-05): Phase 1 and Phase 2 Chunks 1–4 are committed through e5f071f. Phase 3A manual-management scope is approved and implemented locally; validation is recorded in docs/PHASE_3A_REPORT.md. ADR 0006 defines the online-only Android/Web boundary. Actual notifications, offline sync, AI/image/prescription processing, live integrations and deployment remain later work. Historical phase descriptions below are target design, not evidence of completed release gates.
 
 > Phase 1 implementation update (2026-09-24): the foundation is now implemented. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md), [current API contract](contracts/openapi.json) and [scope decisions](docs/adr/0001-phase-one-boundaries.md). The remaining design below describes future behavior, not implemented clinical functionality.

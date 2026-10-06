@@ -1,6 +1,8 @@
 # Phase 3A implementation and validation report
 
-Date: 2026-10-05. Base commit: e5f071f. Phase 3A implementation and local validation are complete. Changes are uncommitted; nothing is staged.
+Date: 2026-10-05. Base commit: e5f071f. Phase 3A was committed as f064621, "Phase 3A: manual medication management and dose history". Post-commit working tree was clean.
+
+Checkpoint reconciliation (2026-10-06): the approved review fixes use applied history dates and shared preview/activation materialization bounds. Fresh follow-up validation passed 100 backend tests (95 existing deprecation warnings), 98 Flutter tests, Flutter analysis, affected Python Ruff checks and git diff --check. Targeted suites passed 26 backend and 10 Flutter tests. Web/Android builds below predate those two fixes and were not rerun in the follow-up. No new validation was performed solely for this historical correction.
 
 ## Implemented scope
 
@@ -33,7 +35,7 @@ See [ADR 0006](adr/0006-manual-medication-mvp.md) for exact bounds, failure and 
 
 ## Validation
 
-Fresh results on the completed implementation:
+Initial implementation validation, before the two approved review fixes (preserved historical results):
 
 | Check | Actual result |
 | --- | --- |
@@ -113,14 +115,14 @@ synthetic values only.
 
 ## Next step
 
-Review this uncommitted Phase 3A diff and validation evidence. Do not start notifications,
+Phase 3A review and commit are complete at f064621. Do not start notifications,
 AI, deployment or another phase without a new approved scope. Before a real-user manual MVP,
 validate live auth with synthetic accounts, reviewed translations, real devices/browsers,
 maintenance/backup-erasure operations and the intended privacy/release controls.
 
 ## Exact file manifest
 
-29 modified files; 35 new files. No staged files. All changes belong to Phase 3A.
+Commit f064621 included these 29 modified files and 35 new files. The list records the Phase 3A commit, not current working-tree status.
 
 ### Modified
 

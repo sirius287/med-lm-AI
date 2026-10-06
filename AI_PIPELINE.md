@@ -1,5 +1,7 @@
 # MedLM AI extraction and verification pipeline
 
+> Phase 3B Chunk 1 (2026-10-06): typed observation/review/provenance contracts and a pure state transition helper are implemented, not the pipeline below. Extraction adapters, semantic validation, durable jobs and evidence publication remain later chunks. Scores are explicitly uncalibrated and cannot cause acceptance. No provider calls or clinical report claims are enabled. [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md) defines this limited implementation.
+
 > Phase 1 implementation update (2026-09-24): the foundation is now implemented. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md), [current API contract](contracts/openapi.json) and [scope decisions](docs/adr/0001-phase-one-boundaries.md). The remaining design below describes future behavior, not implemented clinical functionality.
 
 Status: design only. Research checked 2026-09-24. GPT output is untrusted proposed data, never the source of a medical fact.
