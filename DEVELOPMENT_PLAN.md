@@ -1,6 +1,31 @@
 # MedLM AI development plan
 
-Current authorization (2026-10-06): Phase 3A is committed at f064621. Phase 3B Chunk 1 is contracts/state machine/documentation/tests only. The approved seven-chunk order and synthetic-only boundaries are in [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md). Chunk 2 and all runtime integration remain unstarted; no stage/commit authorization.
+Current authorization (2026-10-06): Phase 3A is committed at f064621; Phase 3B Chunk 1 at edbadbc. Chunk 2 adds migration 0006, synthetic persistence, opt-in least-privilege grants and database tests only. The approved stable-analysis/per-job/revision design and seven-chunk order are in [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md). Chunk 3 and all runtime integration remain unstarted; no stage/commit authorization.
+
+Chunk 2 validation covers empty/prior-schema migration and guarded rollback,
+stable parent re-extraction, concurrent attempts/publications, stale pointers and
+reviews, immutable history, exact candidate/prescription bindings, replay rejection,
+ownership/RLS and least privilege. The historical 0005 round-trip test is pinned
+to 0005; other regression suites use the current head. No prior migration or
+historical Phase 3A report is changed. Local results do not validate production
+roles, live providers, real clinical uploads or deployment.
+
+Fresh final-review validation (2026-10-06): full backend regression run **156 passed**;
+focused migration/repository suite **20 passed**, including restricted
+upload-worker metadata deletion with linked analysis history. Ruff checks and
+affected-Python formatting checks pass. All migration runs used disposable local
+PostgreSQL databases, removed afterward; the shared 0005 test baseline was not
+migrated. Existing Alembic `path_separator` and Starlette/httpx deprecation
+warnings remain; no dependency upgrade is part of this chunk.
+
+Final review corrected missing relational confirmation lines within migration 0006.
+Tests now cover exact line/revision ownership, duplicate rejection, sealed assembly,
+complete disposition coverage at commit, and a direct fresh base-to-head upgrade.
+
+Next authorized boundary remains Chunk 2 only. Future Chunk 3 will integrate
+synthetic admission, job lifecycle and existing deletion safeguards after separate
+approval. Provider execution, mandatory-review service semantics, reports and
+Flutter workflow are later chunks; no automatic schedule conversion is planned.
 
 Current checkpoint (2026-10-05): Phase 1 and Phase 2 Chunks 1–4 are committed through e5f071f. Phase 3A manual-management scope is approved and implemented locally; validation is recorded in docs/PHASE_3A_REPORT.md. ADR 0006 defines the online-only Android/Web boundary. Actual notifications, offline sync, AI/image/prescription processing, live integrations and deployment remain later work. Historical phase descriptions below are target design, not evidence of completed release gates.
 

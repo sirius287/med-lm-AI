@@ -1,7 +1,7 @@
 # ADR 0007: Phase 3B synthetic analysis contracts
 
-Date: 2026-10-06. Base: f064621. Seven scope boundaries approved; only Chunk 1
-implementation authorized. This ADR supersedes historical phase numbering, not
+Date: 2026-10-06. Base: f064621. Chunk 1 committed at edbadbc; Chunk 2 persistence
+is authorized, including the stable-analysis decision below. This ADR supersedes historical phase numbering, not
 the safety, ownership or deletion invariants of ADRs 0002–0006.
 
 ## Approved boundary
@@ -53,7 +53,9 @@ Corrections are separate from immutable observations and may explicitly clear a
 value. Later services must authenticate reviewers, bind current revisions, validate
 the complete expected field-key set and line dispositions, compare confirmed values,
 and reject stale/foreign candidates. A structurally valid submission is not acceptance.
-No confirmation endpoint, persistence or authentication bypass exists in Chunk 1.
+Chunk 1 introduced no confirmation endpoint or persistence. Chunk 2 adds storage
+constraints only; field coverage/semantic acceptance and authenticated review
+services are still later work, with no authentication bypass.
 
 ## State machine
 
@@ -71,6 +73,33 @@ before publication and must not hold database transactions during network calls.
 
 ## Retention and report constraints for later chunks
 
+### Stable analysis, attempts and revisions (approved for Chunk 2)
+
+One `medicine_analyses` row is the stable workflow. Re-extraction never replaces
+that parent. Each attempt has a new numbered `analysis_jobs` row; the state machine
+above applies to each job, whose terminal state cannot reopen. Successful attempts
+publish numbered, immutable extraction revisions. The parent retains explicit
+current-job and current-revision pointers with optimistic version checks and row
+locking. Starting another job does not erase the previous extraction, but reviews
+are blocked until the current job has published its own revision. A stale job
+cannot publish; a stale review cannot accept or mutate a newer revision.
+The legacy parent `state` field remains unchanged for compatibility; current
+attempt status is read from the current job, and cancellation from the parent.
+
+Candidate sets, candidates and reviews bind the owner, stable analysis and exact
+extraction revision. Prescription drafts link existing prescription parents to the
+stable analysis; immutable prescription revisions, lines and confirmations bind
+the exact extraction revision. Existing legacy prescription fields are preserved.
+Review/correction records never mutate observations, and job completion never
+changes verification or synthetic provenance into medical evidence.
+
+Cancellation is irreversible on the stable workflow. Aggregate erasure may remove
+immutable history; immutability prohibits edits, not authorized erasure. Deleting
+analysis metadata must not delete upload inventory or bypass its deletion jobs.
+Upload-link removal on eventual upload metadata erasure leaves saved text history
+intact. Lifecycle execution, automatic cleanup, complete review-field validation
+and routes remain later chunks; this chunk supplies constraints and persistence only.
+
 Existing non-review upload completion still queues deletion immediately. Synthetic
 analysis will require explicit retain_for_review=true rather than changing this
 behavior. Review copies expire at review completion/cancellation or the original
@@ -85,8 +114,8 @@ clinical translation or interaction-clearance claim is enabled in this phase.
 
 ## Sequence and acceptance
 
-1. Typed contracts, pure state machine, documentation and focused tests (this chunk).
-2. Additive schema and least-privilege access (not started).
+1. Typed contracts, pure state machine, documentation and focused tests (committed edbadbc).
+2. Additive schema and least-privilege access (implemented locally; not committed).
 3. Synthetic upload/job lifecycle (not started).
 4. Extraction adapters and semantic validation (not started).
 5. Versioned mandatory review (not started).
@@ -98,3 +127,16 @@ strength/dose, uncalibrated confidence, independent states and invalid transitio
 have focused tests; existing foundation/contract tests pass; Ruff and whitespace
 checks pass. No migrations, routes, Flutter changes, credentials or provider calls.
 Passing these tests validates contract behavior, not OCR accuracy or medical safety.
+
+Chunk 2 uses migration `0006_analysis_foundation` and an explicitly opt-in grant
+script. Existing prescription parents are retained; `analysis_prescription_*`
+tables are their revision-bound extension, not a separate prescription workflow.
+Candidate sets and prescription lines assemble atomically and seal at transaction
+end; observations, reviews and confirmations reject updates. Relational confirmation
+lines bind the exact owner/analysis/draft/revision/line and confirmation, assemble
+with their header, and reject partial line coverage at commit. This is persistence
+integrity, not clinical acceptance or schedule authorization. Default runtime
+grants, normal uploads, legacy tables/fields and migrations 0001–0005 are preserved.
+Rollback refuses populated new metadata. Local database tests cover two-user RLS,
+composite FKs, concurrency/staleness, replay, immutability and deletion behavior.
+No worker, endpoint, provider, evidence or report functionality is supplied.

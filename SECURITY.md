@@ -1,6 +1,39 @@
 # MedLM AI security and privacy design
 
-> Phase 3B Chunk 1 (2026-10-06): pure contracts only; normal medical uploads remain disabled. Synthetic provenance is server-owned metadata, not client authorization. No confidence threshold, user confirmation or configured provider key establishes source verification or opens release gates. Existing independent deletion controls remain unchanged. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+> Phase 3B Chunk 2 (2026-10-06): synthetic persistence only; normal medical uploads remain disabled. Synthetic provenance is server-owned metadata, not client authorization. No confidence threshold, user confirmation or configured provider key establishes source verification or opens release gates. Existing independent deletion controls remain unchanged. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+
+Chunk 2 adds eleven owner-scoped tables with FORCE RLS, composite ownership/revision
+FKs and append-only history triggers. Stable parent locks and version checks fence
+stale publication/review; cancellation prevents later child writes. Job completion
+cannot produce verified evidence. Immutable history remains subject to aggregate
+erasure. Candidate and prescription-line assembly is transaction-bound to prevent
+later additions from changing a reviewed revision. Confirmation lines reference
+both their exact confirmation and prescription line through composite owner/revision
+FKs. Deferred coverage checks require every line's disposition before commit;
+these records do not authorize medication or schedule creation.
+
+Normal `runtime_grants.sql` still denies analysis/prescription access. The separate
+synthetic-analysis grant script rejects runtime roles with SUPERUSER, CREATEDB,
+CREATEROLE or BYPASSRLS. It grants only required parent operations, child
+SELECT/INSERT and narrowly named mutable columns; no new child DELETE, broad
+service role, SECURITY DEFINER, worker privileges or cross-owner policy. Apply it
+only to the isolated harness alongside synthetic-upload grants. Like existing
+owner RLS, `app.user_id` is trusted server context, not a client-set credential;
+application database credentials must never be exposed to clients.
+
+Database envelopes are not complete clinical review validation: future services
+must authenticate the current session/account, validate all field/line review
+coverage and validate actual fixture admission. This repository is not routed or
+executed by workers. No confirmation is consumed by medications/schedules.
+Synthetic flags and hashes alone do not establish that uploaded bytes are safe.
+
+Links require accepted, unexpired, explicitly retained uploads. Deleting saved
+analysis text leaves upload inventory and independent deletion safeguards intact;
+purging upload metadata removes its link without erasing separately saved text.
+No upload expiry, receipt or deletion trigger is changed. End-to-end review-end,
+session-cancellation and worker cleanup orchestration remains Chunk 3, not a
+completed privacy-release gate. Database tests use disposable local PostgreSQL
+and the actual restricted runtime role; no live service or medical-data use.
 
 > Current implementation (2026-10-05): Phase 3A enables only owner-scoped manual medication data through FastAPI; images and prescription/AI routes remain disabled. It adds a separate encrypted-response key, transaction/session locks, immutable revisions/events, explicit history erasure, 24-hour replay expiry and an expiry-only maintenance role. Personal Flutter state stays in memory and clears on owner/session changes. Local validation does not authorize real-user deployment or establish backup erasure, scheduled maintenance or compliance. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md).
 

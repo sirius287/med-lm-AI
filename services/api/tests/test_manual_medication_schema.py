@@ -29,7 +29,7 @@ def test_additive_migration_roundtrip(isolated_database, baseline):
     command.upgrade(cfg, "0004_upload_runtime")
     with engine.connect() as conn:
         before = snapshot(conn)
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, "0005_manual_medications")
     with engine.connect() as conn:
         assert (
             conn.scalar(text("SELECT version_num FROM alembic_version"))
@@ -53,7 +53,7 @@ def test_additive_migration_roundtrip(isolated_database, baseline):
     command.downgrade(cfg, "0004_upload_runtime")
     with engine.connect() as conn:
         assert snapshot(conn) == before
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, "0005_manual_medications")
 
 
 def test_runtime_rls_and_append_only_guards(isolated_database):

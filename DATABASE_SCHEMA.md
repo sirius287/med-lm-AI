@@ -1,6 +1,79 @@
 # MedLM AI database design
 
-> Phase 3B Chunk 1 (2026-10-06): no schema or grant changes. Migration 0005 remains head. Later approved chunks will extend existing analysis/prescription tables rather than duplicating the conceptual entities below. Typed DTOs do not imply persistence or database enforcement. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+> Phase 3B Chunk 2 (2026-10-06): additive `0006_analysis_foundation` follows 0005. The implemented synthetic persistence subset below supersedes conceptual names in the future entity catalog. No routes, execution, provider access, medical uploads or verification are enabled. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+
+## Implemented synthetic analysis persistence (0006)
+
+`medicine_analyses` remains the stable parent. Added nullable `analysis_mode`
+(only `synthetic`), `current_job_id`, `current_revision_id`, `cancelled_at` preserve
+legacy rows. Existing `version` provides optimistic concurrency. The legacy
+`state` column is preserved, not used as the current attempt's state: read the
+current job instead. Cancellation is a separate irreversible parent marker.
+`prescriptions` gains only `UNIQUE(user_id,id,analysis_id)`, supporting an
+owner-consistent link from the new draft table. No previous migration is rewritten.
+
+| Added table | Implemented purpose and uniqueness |
+| --- | --- |
+| analysis_uploads | One owned analysis/upload link; unique analysis and upload, explicitly retained accepted synthetic uploads only |
+| analysis_jobs | Numbered attempts under stable parent; unique `(analysis_id,attempt)` and `(user_id,analysis_id,request_key)` |
+| extraction_revisions | Immutable JSON observations, contract version, fixture ID/hash, synthetic provenance and unverified/ambiguous/unsupported-market state; unique job and `(analysis_id,revision)` |
+| identity_candidate_sets | Immutable set bound to extraction; one set per extraction |
+| identity_candidates | Observed names only; unique `(candidate_set_id,ordinal)`; no evidence authority |
+| analysis_reviews | Immutable corrections/reviews bound to extraction, set and optional candidate; unique owner/analysis/request key |
+| analysis_prescription_drafts | Stable bridge to existing prescription parent and analysis; unique analysis and prescription |
+| analysis_prescription_revisions | Immutable transcription revision; unique `(draft_id,revision)` and `(draft_id,extraction_revision_id)` |
+| analysis_prescription_lines | Nullable clinical fields stored as JSON observations; unique `(prescription_revision_id,ordinal)` |
+| analysis_prescription_confirmations | Immutable exact-revision review snapshot; unique prescription revision and owner/analysis/request key; not schedule authorization |
+| analysis_prescription_confirmation_lines | Immutable per-line disposition/review snapshot; unique `(confirmation_id,line_id)`; composite FKs bind confirmation and line to the same owner, analysis, draft and prescription revision |
+
+Every new table has non-null `user_id`, UUID primary key, unique `(user_id,id)`,
+owner-consistent composite foreign keys, a `(user_id,analysis_id)` index, enabled
+and forced RLS and `owner_access` using transaction-local `app.user_id`. Additional
+composite unique keys bind child records to the same analysis, extraction, draft
+or candidate set; current-pointer FKs are deferred to transaction commit.
+Named lookup/order indexes are `analysis_upload_lookup`, `analysis_job_order`,
+`analysis_revision_order`, `analysis_review_order`. Uniqueness adds the associated
+PostgreSQL indexes. JSON object/type, positive numbering, ordinal, state and
+synthetic checksum/provenance checks reject malformed persistence envelopes.
+Full typed payload/field coverage validation remains a service responsibility.
+
+Parent row locks serialize attempts, publication and reviews. Pointer updates
+require a version increment and reject old jobs/revisions; repository callers also
+compare the expected version after locking. Old terminal/superseded jobs cannot
+change. A deferred constraint rejects an extraction commit without its pointer
+publication and completed job. History updates are rejected even for the migration owner. Candidate sets
+and prescription revision/confirmation lines assemble in one transaction (server-assigned
+`xid8` assembly marker); additions in later transactions are rejected. Reviews
+cannot bind a previous result while a new attempt is pending. Completion never
+changes verification. Replay keys reject duplicates; HTTP idempotent responses
+are not implemented in this chunk.
+
+Confirmation headers and line dispositions commit atomically: a deferred coverage
+constraint rejects missing dispositions for any line of the referenced revision.
+This guarantees relational coverage, not clinical field acceptance. Complete field
+validation and schedule authorization remain disabled and deferred.
+
+Aggregate text erasure deletes linked prescription parents before the analysis,
+then cascades its new history. Upload inventory, receipts and deletion jobs are
+never erased by analysis deletion. Upload metadata erasure cascades only the link,
+preserving independently saved text. Retention requires `retain_for_review=true`
+and an unexpired accepted upload at link creation; no deadline can be extended.
+Review/cancellation cleanup execution and admission are deferred to Chunk 3.
+
+Default runtime grants are unchanged. `database/synthetic_analysis_grants.sql` is
+explicit opt-in for disposable synthetic persistence tests, alongside existing
+synthetic-upload grants. Runtime gets SELECT/INSERT on the eleven new tables,
+UPDATE(state) on jobs, SELECT/INSERT/DELETE on the two existing parents, and
+UPDATE of only the current pointers/cancellation/version on analysis parents.
+It gets SELECT on uploads (the existing upload grants supply the admission-lock
+privilege). No new history DELETE/UPDATE, source-table grants, legacy prescription
+line/confirmation grants, worker grants or maintenance bypass are introduced.
+
+Rollback to 0005 refuses if any new table or parent metadata contains new data;
+export/explicit erasure is required first. The check temporarily removes FORCE
+RLS for migration-owner visibility inside the migration transaction; failure
+rolls this back. An empty rollback restores the previous column schema and FORCE
+RLS. It does not delete legacy analyses or prescriptions.
 
 > Current implementation (2026-10-05): Phase 3A migration `0005_manual_medications` (file `0005_manual_medication_management.py`) follows 0004 additively. It extends existing `medications`, `medication_schedules`, `dose_occurrences`, `dose_events`, adds `medication_instruction_revisions` and encrypted `idempotency_records`, owner constraints, immutable-history triggers and reviewed runtime grants. Existing logical names `user_medications` / `schedule_revisions` below remain design terminology; do not create duplicate replacements for the implemented tables. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md).
 
