@@ -1,6 +1,23 @@
 # MedLM AI extraction and verification pipeline
 
-> Phase 3B Chunk 1 (2026-10-06): typed observation/review/provenance contracts and a pure state transition helper are implemented, not the pipeline below. Extraction adapters, semantic validation, durable jobs and evidence publication remain later chunks. Scores are explicitly uncalibrated and cannot cause acceptance. No provider calls or clinical report claims are enabled. [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md) defines this limited implementation.
+> Phase 3B Chunk 3 (2026-10-07): contracts, persistence and the synthetic-only upload/job lifecycle are implemented, not the extraction pipeline below. Extraction adapters, semantic validation and evidence publication remain later chunks. Scores cannot cause acceptance. No provider calls or clinical claims are enabled. [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md) defines this limited implementation.
+
+The injected test harness links one accepted, allowlisted JPEG/PNG/WebP upload with
+`retain_for_review=true` to a stable analysis. Attempts start queued and progress
+through validating, extracting, retrieving and validating_output without performing
+those future processing operations. Every nonterminal state may end in failed,
+cancelled or needs_input, including queued. No stage skipping, backwards/same-state
+transition or terminal reopening is allowed. Request replay returns the saved response.
+
+Completion still requires atomic revision publication; no endpoint accepts extraction
+observations or completes a job. Only persistence tests supply synthetic observations.
+Publication is protected by current-job/version checks, session-bound leases and fencing.
+Retries create new attempts without changing the original image/analysis deadline.
+Expiry is separate from processing state, durably recorded on status/mutation access,
+and database deadline checks block publication even before that marker is recorded.
+Existing independent upload maintenance enforces physical deletion without API traffic.
+Processing completion keeps the review image; cancellation/expiry queue deletion.
+Review completion is a later service. Completion never means reviewed or verified.
 
 > Phase 1 implementation update (2026-09-24): the foundation is now implemented. See [PHASE_1_REPORT.md](PHASE_1_REPORT.md), [current API contract](contracts/openapi.json) and [scope decisions](docs/adr/0001-phase-one-boundaries.md). The remaining design below describes future behavior, not implemented clinical functionality.
 

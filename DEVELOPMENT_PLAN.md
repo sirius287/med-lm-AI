@@ -1,6 +1,6 @@
 # MedLM AI development plan
 
-Current authorization (2026-10-06): Phase 3A is committed at f064621; Phase 3B Chunk 1 at edbadbc. Chunk 2 adds migration 0006, synthetic persistence, opt-in least-privilege grants and database tests only. The approved stable-analysis/per-job/revision design and seven-chunk order are in [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md). Chunk 3 and all runtime integration remain unstarted; no stage/commit authorization.
+Current authorization (2026-10-07): Phase 3A is committed at f064621; Phase 3B Chunks 1/2 at edbadbc/abea49f. Chunk 3 implements only the explicitly injected synthetic upload/job lifecycle, migration 0007, leases/fencing, expiry and existing deletion-queue integration. The approved decisions and seven-chunk order are in [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md). No stage/commit authorization; Chunk 4+ remains unstarted.
 
 Chunk 2 validation covers empty/prior-schema migration and guarded rollback,
 stable parent re-extraction, concurrent attempts/publications, stale pointers and
@@ -22,10 +22,24 @@ Final review corrected missing relational confirmation lines within migration 00
 Tests now cover exact line/revision ownership, duplicate rejection, sealed assembly,
 complete disposition coverage at commit, and a direct fresh base-to-head upgrade.
 
-Next authorized boundary remains Chunk 2 only. Future Chunk 3 will integrate
-synthetic admission, job lifecycle and existing deletion safeguards after separate
-approval. Provider execution, mandatory-review service semantics, reports and
-Flutter workflow are later chunks; no automatic schedule conversion is planned.
+Chunk 3 reuses accepted synthetic uploads, owner/session transactions and encrypted
+idempotency. Tests exercise completion through repository-only synthetic observations;
+there is no extraction/completion-result endpoint. Processing completion keeps the
+review image, cancellation/expiry enqueue deletion, and no retry extends the original
+deadline. Migration tests cover fresh head, 0006 upgrade, empty/legacy-only rollback
+and refusal to discard new lifecycle metadata. Existing migrations remain unchanged.
+Provider execution, mandatory-review service semantics, reports and Flutter workflow
+are later chunks; no automatic schedule conversion is planned. Normal medical uploads,
+live integrations, credentials, notifications and deployment remain disabled.
+
+Chunk 3 final local validation (2026-10-07): **194 backend/database tests passed**,
+including 38 new lifecycle/migration tests and all existing regression tests. Ruff
+and affected-file formatting checks passed; `git diff --check` passed. Disposable
+PostgreSQL validation covered base-to-head, 0006-to-0007, empty and legacy-only
+0007-to-0006 rollback, and safe refusal with lifecycle data. Runtime RLS/ownership,
+role flags, stale leases/publication, CSRF, session revocation, expiry and verified
+deletion receipts passed. Existing Alembic and Starlette/httpx deprecations remain.
+No external service/device or clinical capability was validated. No staging or commit.
 
 Current checkpoint (2026-10-05): Phase 1 and Phase 2 Chunks 1–4 are committed through e5f071f. Phase 3A manual-management scope is approved and implemented locally; validation is recorded in docs/PHASE_3A_REPORT.md. ADR 0006 defines the online-only Android/Web boundary. Actual notifications, offline sync, AI/image/prescription processing, live integrations and deployment remain later work. Historical phase descriptions below are target design, not evidence of completed release gates.
 

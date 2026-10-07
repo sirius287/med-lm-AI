@@ -40,9 +40,12 @@ def transition(current: AnalysisState, target: AnalysisState) -> AnalysisState:
     current, target = AnalysisState(current), AnalysisState(target)
     if current not in stages[:-1]:
         raise ValueError("Terminal analysis cannot transition")
-    allowed = {stages[stages.index(current) + 1], AnalysisState.FAILED, AnalysisState.CANCELLED}
-    if current != AnalysisState.QUEUED:
-        allowed.add(AnalysisState.NEEDS_INPUT)
+    allowed = {
+        stages[stages.index(current) + 1],
+        AnalysisState.FAILED,
+        AnalysisState.CANCELLED,
+        AnalysisState.NEEDS_INPUT,
+    }
     if target not in allowed:
         raise ValueError("Invalid analysis transition")
     return target

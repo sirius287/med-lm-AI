@@ -1,4 +1,4 @@
-"""Owner-scoped persistence primitives, deliberately unwired to API or workers.
+"""Owner-scoped persistence primitives used by the synthetic lifecycle harness.
 
 Caller supplies an existing owner-scoped transaction. Publication is atomic with
 that transaction; no provider work or automatic acceptance takes place here.
@@ -34,10 +34,24 @@ class AnalysisRepository:
             raise AnalysisConflict("Analysis unavailable or stale")
         return row
 
-    def create(self, *, kind: str, locale: str) -> UUID:
+    def create(self, *, kind: str, locale: str, expires_at=None) -> UUID:
         if kind not in {"medicine", "prescription"} or locale not in {"en-IN", "hi-IN", "te-IN"}:
             raise ValueError("Unsupported synthetic analysis context")
         identity = uuid4()
+        if expires_at is not None:
+            self.connection.execute(
+                text("""INSERT INTO medlm.medicine_analyses
+              (id,user_id,kind,country,locale,analysis_mode,expires_at)
+              VALUES (:id,:u,:kind,'IN',:locale,'synthetic',:expiry)"""),
+                {
+                    "id": identity,
+                    "u": self.user_id,
+                    "kind": kind,
+                    "locale": locale,
+                    "expiry": expires_at,
+                },
+            )
+            return identity
         self.connection.execute(
             text("""INSERT INTO medlm.medicine_analyses
             (id,user_id,kind,country,locale,analysis_mode)
@@ -46,15 +60,37 @@ class AnalysisRepository:
         )
         return identity
 
-    def start_attempt(self, analysis_id: UUID, expected_version: int, request_key: UUID) -> UUID:
+    def start_attempt(
+        self,
+        analysis_id: UUID,
+        expected_version: int,
+        request_key: UUID,
+        *,
+        origin_session_id: UUID | None = None,
+    ) -> UUID:
         self._locked(analysis_id, expected_version)
         identity = uuid4()
-        self.connection.execute(
-            text("""INSERT INTO medlm.analysis_jobs(id,user_id,analysis_id,attempt,request_key)
+        if origin_session_id is not None:
+            self.connection.execute(
+                text("""INSERT INTO medlm.analysis_jobs
+              (id,user_id,analysis_id,attempt,request_key,origin_session_id)
+              SELECT :id,:u,:a,COALESCE(max(attempt),0)+1,:key,:session
+              FROM medlm.analysis_jobs WHERE user_id=:u AND analysis_id=:a"""),
+                {
+                    "id": identity,
+                    "u": self.user_id,
+                    "a": analysis_id,
+                    "key": request_key,
+                    "session": origin_session_id,
+                },
+            )
+        else:
+            self.connection.execute(
+                text("""INSERT INTO medlm.analysis_jobs(id,user_id,analysis_id,attempt,request_key)
             SELECT :id,:u,:a,COALESCE(max(attempt),0)+1,:key
             FROM medlm.analysis_jobs WHERE user_id=:u AND analysis_id=:a"""),
-            {"id": identity, "u": self.user_id, "a": analysis_id, "key": request_key},
-        )
+                {"id": identity, "u": self.user_id, "a": analysis_id, "key": request_key},
+            )
         self.connection.execute(
             text("""UPDATE medlm.medicine_analyses SET current_job_id=:job,version=version+1
             WHERE user_id=:u AND id=:a"""),
@@ -69,10 +105,29 @@ class AnalysisRepository:
         expected_version: int,
         extraction: ExtractionResult,
         provenance: SyntheticProvenance,
+        *,
+        lease_token: UUID | None = None,
+        fencing_token: int | None = None,
+        session_id: UUID | None = None,
     ) -> UUID:
         row = self._locked(analysis_id, expected_version)
         if row["current_job_id"] != job_id:
             raise AnalysisConflict("Superseded job")
+        managed = row.get("expires_at") is not None
+        if managed:
+            if lease_token is None or fencing_token is None or session_id is None:
+                raise AnalysisConflict("Current lease and session required")
+            self.connection.execute(
+                text("""SELECT
+              set_config('app.analysis_lease_token',:token,true),
+              set_config('app.analysis_fence',:fence,true),
+              set_config('app.analysis_session_id',:session,true)"""),
+                {
+                    "token": str(lease_token),
+                    "fence": str(fencing_token),
+                    "session": str(session_id),
+                },
+            )
         if (extraction.document_kind == "prescription") != (row["kind"] == "prescription"):
             raise ValueError("Extraction kind differs from analysis")
         identity = uuid4()
@@ -96,11 +151,19 @@ class AnalysisRepository:
             WHERE user_id=:u AND id=:a"""),
             {"r": identity, "u": self.user_id, "a": analysis_id},
         )
-        self.connection.execute(
-            text("""UPDATE medlm.analysis_jobs SET state='completed'
+        if managed:
+            self.connection.execute(
+                text("""UPDATE medlm.analysis_jobs SET state='completed',
+              lease_token=NULL,lease_until=NULL,lifecycle_version=lifecycle_version+1
+              WHERE user_id=:u AND analysis_id=:a AND id=:j"""),
+                {"u": self.user_id, "a": analysis_id, "j": job_id},
+            )
+        else:
+            self.connection.execute(
+                text("""UPDATE medlm.analysis_jobs SET state='completed'
             WHERE user_id=:u AND analysis_id=:a AND id=:j"""),
-            {"u": self.user_id, "a": analysis_id, "j": job_id},
-        )
+                {"u": self.user_id, "a": analysis_id, "j": job_id},
+            )
         return identity
 
     def cancel(self, analysis_id: UUID, expected_version: int) -> None:

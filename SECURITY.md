@@ -1,6 +1,22 @@
 # MedLM AI security and privacy design
 
-> Phase 3B Chunk 2 (2026-10-06): synthetic persistence only; normal medical uploads remain disabled. Synthetic provenance is server-owned metadata, not client authorization. No confidence threshold, user confirmation or configured provider key establishes source verification or opens release gates. Existing independent deletion controls remain unchanged. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+> Phase 3B Chunk 3 (2026-10-07): synthetic lifecycle is restricted to explicit test-environment dependency injection. Normal medical uploads remain disabled. Synthetic provenance is server-owned metadata, not client authorization. No confidence threshold, user confirmation or provider key establishes verification or opens release gates. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+
+The lifecycle reuses existing upload authentication/account/session rechecks, transaction-local
+owner context, logout serialization, CSRF and encrypted domain replay. Job leases bind the
+originating session; another session must create a new attempt. Current-job/version and
+database token/fencing guards prohibit stale publication. Expiry blocks writes using the
+original deadline even before the durable marker is recorded. No database transaction
+spans provider/network execution; no such execution exists in this chunk.
+
+Admission requires actual-byte allowlisting through the existing upload runtime,
+matching JPEG/PNG/WebP metadata, explicit review retention and healthy deletion controls.
+Cancellation/expiry enqueue existing deletion jobs; independent sweep/reconciliation and
+verified receipts remain unchanged. Processing completion retains the review image until
+review-end/cancellation/original expiry, never extending 24 hours. Status access records
+expiry; independent image deletion does not depend on that access. No new analysis worker.
+The opt-in lifecycle grant adds only named mutable columns. FORCE RLS, owner FKs,
+NOSUPERUSER/NOCREATEDB/NOCREATEROLE/NOBYPASSRLS and invoker-only functions are preserved.
 
 Chunk 2 adds eleven owner-scoped tables with FORCE RLS, composite ownership/revision
 FKs and append-only history triggers. Stable parent locks and version checks fence
@@ -23,16 +39,17 @@ application database credentials must never be exposed to clients.
 
 Database envelopes are not complete clinical review validation: future services
 must authenticate the current session/account, validate all field/line review
-coverage and validate actual fixture admission. This repository is not routed or
-executed by workers. No confirmation is consumed by medications/schedules.
+coverage and validate actual fixture admission. Only lifecycle operations are routed
+in the test harness; no extraction or review worker exists. No confirmation is consumed by medications/schedules.
 Synthetic flags and hashes alone do not establish that uploaded bytes are safe.
 
 Links require accepted, unexpired, explicitly retained uploads. Deleting saved
 analysis text leaves upload inventory and independent deletion safeguards intact;
 purging upload metadata removes its link without erasing separately saved text.
-No upload expiry, receipt or deletion trigger is changed. End-to-end review-end,
-session-cancellation and worker cleanup orchestration remains Chunk 3, not a
-completed privacy-release gate. Database tests use disposable local PostgreSQL
+No upload expiry, receipt or deletion trigger is changed. Review-end handling remains
+later work. Revoked/expired sessions cannot mutate lifecycle records; independent
+upload cleanup still runs without a live session. This is not a completed
+privacy-release gate. Database tests use disposable local PostgreSQL
 and the actual restricted runtime role; no live service or medical-data use.
 
 > Current implementation (2026-10-05): Phase 3A enables only owner-scoped manual medication data through FastAPI; images and prescription/AI routes remain disabled. It adds a separate encrypted-response key, transaction/session locks, immutable revisions/events, explicit history erasure, 24-hour replay expiry and an expiry-only maintenance role. Personal Flutter state stays in memory and clears on owner/session changes. Local validation does not authorize real-user deployment or establish backup erasure, scheduled maintenance or compliance. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md).

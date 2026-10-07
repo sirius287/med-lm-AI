@@ -1,6 +1,35 @@
 # MedLM AI API specification
 
-> Phase 3B Chunk 1 (2026-10-06): `analysis_contracts.py` contains proposed harness DTOs only. No analysis/review routes or OpenAPI changes are enabled. Upload IDs are bounded to one, country to IN; server-owned provenance/verification are rejected in create requests. Structural review validation is not authenticated acceptance; later services must enforce current revision and complete field coverage. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+> Phase 3B Chunk 3 (2026-10-07): `analysis_lifecycle_contracts.py` defines implemented lifecycle DTOs for an explicitly injected test harness only. `analysis_contracts.py` still contains future extraction/review DTOs. Default application routes and checked-in OpenAPI artifacts remain unchanged; the injected harness publishes its typed lifecycle OpenAPI dynamically. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+
+All paths below have `/api/v1` prefix and require existing authentication (and CSRF
+for cookie-authenticated mutations). POST requires a UUID `Idempotency-Key`; responses
+reuse the existing encrypted replay infrastructure. No raw object key/URL is exposed.
+
+| Harness route | Request / response |
+| --- | --- |
+| POST `/analyses` | `upload_id`, `document_kind` (strip/bottle/tube/box/prescription), `content_type` (image/jpeg, image/png, image/webp), `retain_for_review:true`, `locale` (en-IN/hi-IN/te-IN); 201 analysis status with first queued job |
+| GET `/analyses/{id}` | Current status; records expiry and queues deletion when due |
+| POST `/analyses/{id}/jobs` | Expected parent `version`; 201 new queued attempt under the same parent |
+| POST `/analyses/{id}/cancel` | Expected parent `version`; 200 terminal workflow cancellation and queued image deletion |
+| POST `/analyses/{id}/jobs/{job_id}/lease` | Expected `job_version`; 200 status plus opaque `lease_token` |
+| POST `/analyses/{id}/jobs/{job_id}/transitions` | `job_version`, `lease_token`, `fencing_token`, `target`; 200 status. Target excludes completed; no extraction/result submission endpoint exists |
+
+Status contains `id`, `version`, `availability` (available/expired/cancelled/unavailable),
+original `expires_at`, nullable `expired_at`, nullable `result_revision` and `job`
+(`id`, `attempt`, `state`, `version`, `fencing_token`, `lease_expires_at`). These are
+processing metadata, not verification. Lease acquisition rotates a token/counter and
+increments job version without a processing transition. Active leases cannot be
+replaced; expired leases can be reacquired only by the originating authenticated session.
+New sessions must start a new attempt. Parent cancellation freezes all attempts without
+rewriting their processing history; a leased transition to cancelled also marks the parent.
+
+Foreign/missing resources return 404, stale versions/jobs/leases and invalid transitions
+409, expired/unavailable work 410, invalid input 422, absent idempotency key 428.
+Expired work cannot be revived by replay. A replay against a superseded job is rejected;
+accepted replay never reapplies a mutation. Admission requires healthy independent
+deletion safeguards and an already accepted owned upload with matching kind/MIME and
+actual-byte checksum allowlisting. Normal-app uploads and analyses remain unavailable.
 
 > Current implementation (2026-10-05): Phase 3A now implements manual `/medications` CRUD, schedule preview/activation, `/occurrences`, `/occurrences/{id}/events`, `/history`, and the added `POST /occurrences/materialize`. The generated contract is authoritative for this subset. Dates on list endpoints are `from_date` / `to_date`, inclusive in `time_zone` (default Asia/Kolkata), at most 90 days; pagination uses opaque UUID cursors. Medication lists optionally accept `include_deleted=true`. PATCH supplies the complete manual field set. Manual inputs accept no product/report/analysis/origin link. ScheduleInput requires `end_date` or `open_ended=true`, and explicit schedule-specific inputs; dose/instruction provenance comes from the owned medication revision. Preview POST returns 200 and requires an idempotency key; activation returns the updated medication (201). Events support taken/skipped/corrected with `corrected_status` and latest `supersedes_event_id`. PRN, snooze, notifications and sync endpoints remain absent. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md) for replay, bounds and erasure semantics.
 

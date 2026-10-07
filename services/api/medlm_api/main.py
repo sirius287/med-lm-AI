@@ -42,10 +42,22 @@ class Health(BaseModel):
     version: str
 
 
-def create_app(settings: Settings | None = None, gateway=None, *, synthetic_uploads=None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    gateway=None,
+    *,
+    synthetic_uploads=None,
+    synthetic_analyses=None,
+) -> FastAPI:
     settings = settings or Settings()
     if synthetic_uploads is not None and settings.environment != "test":
         raise ValueError("Uploads are restricted to an explicitly injected synthetic test harness")
+    if synthetic_analyses is not None and (
+        settings.environment != "test"
+        or synthetic_uploads is None
+        or synthetic_analyses.uploads is not synthetic_uploads
+    ):
+        raise ValueError("Analysis requires the same explicitly injected synthetic upload harness")
     db = Database(settings)
     provider = gateway or SupabaseGateway(settings)
     auth = AuthService(settings, db, provider)
@@ -208,6 +220,10 @@ def create_app(settings: Settings | None = None, gateway=None, *, synthetic_uplo
         from medlm_api.upload_routes import upload_router
 
         router.include_router(upload_router(synthetic_uploads))
+    if synthetic_analyses is not None:
+        from medlm_api.analysis_routes import analysis_router
+
+        router.include_router(analysis_router(synthetic_analyses))
     from medlm_api.medication_routes import router as medication_router
 
     router.include_router(medication_router)

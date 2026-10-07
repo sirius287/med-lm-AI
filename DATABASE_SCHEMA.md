@@ -1,6 +1,33 @@
 # MedLM AI database design
 
-> Phase 3B Chunk 2 (2026-10-06): additive `0006_analysis_foundation` follows 0005. The implemented synthetic persistence subset below supersedes conceptual names in the future entity catalog. No routes, execution, provider access, medical uploads or verification are enabled. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+> Phase 3B Chunk 3 (2026-10-07): head is additive `0007_analysis_lifecycle`, following 0006. Only the explicitly injected synthetic harness uses lifecycle routes. No extraction, provider access, normal medical uploads or verification are enabled. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
+
+## Implemented lifecycle extension (0007)
+
+No tables are added. `medicine_analyses` gains nullable `expires_at` and `expired_at`.
+The original upload deadline is copied at creation, immutable and bounded to 24 hours;
+an expiry marker is irreversible, versioned and cannot predate the deadline. Legacy
+0006 persistence rows keep null deadlines and cannot be accessed by lifecycle routes.
+`analysis_jobs` gains immutable `origin_session_id`, nullable paired `lease_token` /
+`lease_until`, nonnegative `fencing_token` (default 0) and positive `lifecycle_version`
+(default 1). Session IDs are provider session identifiers, not new credential storage.
+Partial indexes `analysis_expiry_due` and `analysis_lease_due` support deadline lookup.
+
+Invoker-only triggers enforce deadline, retained-upload availability, session binding,
+current-job identity, token/counter equality and version increments. Lease acquisition
+is bounded to 60 seconds and the original deadline; transitions cannot extend it.
+Terminal transitions release the lease. Expiry invalidates effective leases without
+rewriting historical job state or requiring a new processing state. New publication
+requires the live lease and atomic completed/revision/pointer transaction from 0006.
+Queued-to-needs_input is allowed; all other transition restrictions remain intact.
+
+Existing FORCE RLS, owner-consistent FKs and policies are unchanged. Optional
+`synthetic_analysis_lifecycle_grants.sql` adds only UPDATE(expired_at) on the parent
+and UPDATE of the four mutable lease/version columns on jobs to the restricted runtime.
+Default grants and upload-worker privileges remain unchanged. No SECURITY DEFINER.
+Downgrade refuses lifecycle data, preserving it and FORCE RLS on failure; with no new
+metadata it restores 0006 schema/guard definitions while preserving legacy history.
+Migrations 0001–0006 are unchanged.
 
 ## Implemented synthetic analysis persistence (0006)
 
@@ -45,8 +72,8 @@ publication and completed job. History updates are rejected even for the migrati
 and prescription revision/confirmation lines assemble in one transaction (server-assigned
 `xid8` assembly marker); additions in later transactions are rejected. Reviews
 cannot bind a previous result while a new attempt is pending. Completion never
-changes verification. Replay keys reject duplicates; HTTP idempotent responses
-are not implemented in this chunk.
+changes verification. Replay keys reject duplicates; Chunk 3 adds HTTP replay using
+the existing encrypted idempotency records rather than a parallel table.
 
 Confirmation headers and line dispositions commit atomically: a deferred coverage
 constraint rejects missing dispositions for any line of the referenced revision.
@@ -58,7 +85,9 @@ then cascades its new history. Upload inventory, receipts and deletion jobs are
 never erased by analysis deletion. Upload metadata erasure cascades only the link,
 preserving independently saved text. Retention requires `retain_for_review=true`
 and an unexpired accepted upload at link creation; no deadline can be extended.
-Review/cancellation cleanup execution and admission are deferred to Chunk 3.
+Chunk 3 admission enforces this gate. Cancellation and expiry queue existing deletion
+jobs; review-end orchestration is deferred with the review service. Processing completion
+does not delete the retained review copy. Independent upload safeguards remain unchanged.
 
 Default runtime grants are unchanged. `database/synthetic_analysis_grants.sql` is
 explicit opt-in for disposable synthetic persistence tests, alongside existing

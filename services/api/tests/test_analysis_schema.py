@@ -200,7 +200,7 @@ def test_populated_rollback_refuses_and_keeps_rls(db):
 
 def test_fresh_base_to_head(isolated_database):
     engine, cfg = isolated_database
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, HEAD)  # Preserve the Chunk 2 migration checkpoint.
     with engine.connect() as conn:
         assert sql(conn, "SELECT version_num FROM alembic_version").scalar() == HEAD
         for table in TABLES:

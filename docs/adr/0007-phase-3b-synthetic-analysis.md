@@ -1,7 +1,8 @@
 # ADR 0007: Phase 3B synthetic analysis contracts
 
-Date: 2026-10-06. Base: f064621. Chunk 1 committed at edbadbc; Chunk 2 persistence
-is authorized, including the stable-analysis decision below. This ADR supersedes historical phase numbering, not
+Date: 2026-10-06; lifecycle update 2026-10-07. Base: f064621. Chunks 1/2 committed
+at edbadbc/abea49f. Chunk 3 synthetic lifecycle is implemented locally, uncommitted.
+This ADR supersedes historical phase numbering, not
 the safety, ownership or deletion invariants of ADRs 0002–0006.
 
 ## Approved boundary
@@ -57,13 +58,26 @@ Chunk 1 introduced no confirmation endpoint or persistence. Chunk 2 adds storage
 constraints only; field coverage/semantic acceptance and authenticated review
 services are still later work, with no authentication bypass.
 
+## Chunk 3 approved lifecycle decisions (2026-10-07)
+
+Chunk 2 is committed at abea49f. Chunk 3 is now authorized, synthetic harness only.
+Successful completion still atomically publishes an extraction revision; no HTTP
+endpoint accepts observations or fabricates a result. Completion is exercised with
+test-only observations through the persistence path. Actual extraction is unavailable.
+Processing completion retains the review copy until review completion, cancellation
+or its original deadline. Cancellation/expiry reuse the existing deletion queue;
+processing completion does not queue whole-upload deletion. Expiry is a separate
+durable parent marker, never a replacement processing state. It invalidates effective
+leases and blocks progress/publication while leaving historical job state intact.
+Queued jobs may now terminate in needs_input. No terminal job can reopen.
+
 ## State machine
 
 Normal progression: queued → validating → extracting → retrieving → validating_output
-→ completed. Every nonterminal state can fail or cancel; validating and later stages
-can end in needs_input. Completed, needs_input, failed and cancelled are terminal.
-No stage skipping, reopening or same-state transition; idempotent request replay is
-a future service responsibility. Re-extraction creates a new job/revision.
+→ completed. Every nonterminal state can fail, cancel or end in needs_input.
+Completed, needs_input, failed and cancelled are terminal.
+No stage skipping, reopening or same-state transition; Chunk 3 reuses encrypted
+domain idempotency for request replay. Re-extraction creates a new job/revision.
 Completed means processing ended, never that identity or medical facts were verified.
 The pure transition helper does not supply persistence locking or worker fencing.
 
@@ -97,11 +111,11 @@ Cancellation is irreversible on the stable workflow. Aggregate erasure may remov
 immutable history; immutability prohibits edits, not authorized erasure. Deleting
 analysis metadata must not delete upload inventory or bypass its deletion jobs.
 Upload-link removal on eventual upload metadata erasure leaves saved text history
-intact. Lifecycle execution, automatic cleanup, complete review-field validation
-and routes remain later chunks; this chunk supplies constraints and persistence only.
+intact. Chunk 3 adds authenticated lifecycle routes and existing deletion-queue
+integration. Extraction execution and complete review-field validation remain later work.
 
 Existing non-review upload completion still queues deletion immediately. Synthetic
-analysis will require explicit retain_for_review=true rather than changing this
+analysis requires explicit retain_for_review=true rather than changing this
 behavior. Review copies expire at review completion/cancellation or the original
 deadline (never later than 24 hours). Retries never extend it. All three independent
 deletion safeguards remain required. Saved text/reports have separate disclosed
@@ -115,8 +129,8 @@ clinical translation or interaction-clearance claim is enabled in this phase.
 ## Sequence and acceptance
 
 1. Typed contracts, pure state machine, documentation and focused tests (committed edbadbc).
-2. Additive schema and least-privilege access (implemented locally; not committed).
-3. Synthetic upload/job lifecycle (not started).
+2. Additive schema and least-privilege access (committed abea49f).
+3. Synthetic upload/job lifecycle (implemented locally; not committed).
 4. Extraction adapters and semantic validation (not started).
 5. Versioned mandatory review (not started).
 6. Evidence-gated report assembly (not started).
@@ -139,4 +153,24 @@ integrity, not clinical acceptance or schedule authorization. Default runtime
 grants, normal uploads, legacy tables/fields and migrations 0001–0005 are preserved.
 Rollback refuses populated new metadata. Local database tests cover two-user RLS,
 composite FKs, concurrency/staleness, replay, immutability and deletion behavior.
-No worker, endpoint, provider, evidence or report functionality is supplied.
+Chunk 2 supplied no worker, endpoint, provider, evidence or report functionality.
+
+Chunk 3 adds migration `0007_analysis_lifecycle`: immutable original parent deadline,
+separate durable expiry marker, session-bound per-job leases, fencing counters and
+optimistic job versions. Null deadlines preserve legacy 0006 persistence but are never
+admitted by the lifecycle API. Invoker-only guards require an accepted retained linked
+upload and current lease before progression/publication. Lease acquisition rotates
+token/counter, increments version and is capped at 60 seconds/original expiry. It is
+not a same-state processing transition. Terminal jobs cannot acquire another lease.
+New sessions may create a new attempt, but cannot operate the prior session's job.
+
+Stable cancellation freezes every attempt and queues deletion without rewriting past
+job states. An explicit leased cancelled transition also cancels the parent. Failed
+and needs_input jobs retain the review copy to allow review/retry until original expiry.
+Expiry is durably marked on status/mutation access; deadline guards and independent
+upload maintenance remain effective without such access. No new worker is implemented.
+Opt-in column grants preserve default-denied normal-app access. Downgrade refuses new
+lifecycle metadata; empty/legacy-only rollback restores 0006 without loss of history.
+The API has no observation submission or completed target. Tests alone publish synthetic
+observations through the existing atomic repository path. Review-end handling, fixture
+adapters, reports and all Chunk 4+ functionality remain unimplemented.

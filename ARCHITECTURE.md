@@ -1,6 +1,15 @@
 # MedLM AI architecture
 
-> 2026-10-06: Phase 3A is committed at f064621; Phase 3B Chunk 1 at edbadbc. Chunk 2 adds synthetic persistence under a stable analysis parent, per-attempt jobs and immutable extraction/prescription revisions; no API or worker integration is enabled. [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md) defines the approved boundary and supersedes historical phase numbering.
+> 2026-10-07: Phase 3A is committed at f064621; Phase 3B Chunks 1/2 at edbadbc/abea49f. Chunk 3 adds a test-only, explicitly injected synthetic analysis lifecycle over the existing upload runtime and stable analysis persistence. The default application exposes no analysis routes. Extraction and provider execution remain unavailable. [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md) defines this boundary.
+
+The synthetic lifecycle reuses upload byte allowlisting, authenticated owner transactions,
+encrypted idempotency responses and independent deletion safeguards. Each attempt has
+a session-bound, short lease, fencing counter and optimistic version. Database guards
+reject expired or superseded publication. Migration 0007 preserves processing history
+with a separate expiry marker. Completion requires atomic immutable revision publication
+and does not mean verification; only tests exercise publication in this chunk. Review
+images retain their original deadline after processing; cancellation/expiry queue
+existing deletion jobs. No analysis worker or network execution is implemented.
 
 > Current implementation (2026-10-05): Phase 3A adds online manual medication APIs/UI on the existing stack. The server alone generates timezone-aware occurrences; no notifications or offline store are enabled. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md) and [fresh validation](docs/PHASE_3A_REPORT.md). Earlier research/checkpoint sections are historical, not current implementation status.
 
