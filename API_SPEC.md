@@ -1,5 +1,28 @@
 # MedLM AI API specification
 
+> Phase 3B Chunk 4 (2026-10-08): an additional explicitly injected synthetic extraction
+> route is implemented. Normal-app routes/OpenAPI and Flutter remain unchanged.
+
+`POST /api/v1/analyses/{id}/jobs/{job_id}/extract` requires existing authentication,
+cookie CSRF where applicable and UUID `Idempotency-Key`. Its strict body contains
+`job_version`, `lease_token`, `fencing_token` only. The current job must be queued
+and leased. Fixture identity/revision, hashes, provider/model, provenance and observed
+text cannot be supplied by clients. Server registration resolves all fixture metadata.
+The response is `{status,revision,metadata,error}`: status uses the lifecycle DTO;
+revision is null on failure/empty output, otherwise an ExtractionRevision containing
+typed observations, synthetic provenance, unreviewed status and unverified/null
+verified_at. Metadata contains fixture_revision, sanitized_sha256, provider_id,
+model_id and pipeline_version; original hash remains provenance.source_sha256.
+
+Provider-disabled returns 503/provider_disabled; invalid binding 422/fixture_invalid
+before processing starts. Adapter failures and malformed output return 200 with
+terminal failed status and safe adapter_failure/invalid_output; valid empty output
+returns needs_input/no_observations. Safe messages are fixed server text, never raw
+exceptions. Existing 401/403/404/409/410 lifecycle protections apply. Successful replay
+returns the saved response; an in-flight duplicate conflicts without invoking another
+adapter. Retrying interrupted/terminal work requires a new job. There is no arbitrary
+result submission, provider selection, fixture ingestion or medical image endpoint.
+
 > Phase 3B Chunk 3 (2026-10-07): `analysis_lifecycle_contracts.py` defines implemented lifecycle DTOs for an explicitly injected test harness only. `analysis_contracts.py` still contains future extraction/review DTOs. Default application routes and checked-in OpenAPI artifacts remain unchanged; the injected harness publishes its typed lifecycle OpenAPI dynamically. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
 
 All paths below have `/api/v1` prefix and require existing authentication (and CSRF

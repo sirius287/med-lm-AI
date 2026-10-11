@@ -7,6 +7,7 @@ that transaction; no provider work or automatic acceptance takes place here.
 from uuid import UUID, uuid4
 
 from medlm_domain.analysis import ExtractionResult, SyntheticProvenance
+from medlm_domain.extraction import ExtractionMetadata
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
 
@@ -109,6 +110,7 @@ class AnalysisRepository:
         lease_token: UUID | None = None,
         fencing_token: int | None = None,
         session_id: UUID | None = None,
+        metadata: ExtractionMetadata | None = None,
     ) -> UUID:
         row = self._locked(analysis_id, expected_version)
         if row["current_job_id"] != job_id:
@@ -131,10 +133,18 @@ class AnalysisRepository:
         if (extraction.document_kind == "prescription") != (row["kind"] == "prescription"):
             raise ValueError("Extraction kind differs from analysis")
         identity = uuid4()
+        extra_columns = ""
+        extra_values = ""
+        extra_params = {}
+        if metadata is not None:
+            metadata = ExtractionMetadata.model_validate(metadata.model_dump())
+            extra_params = metadata.model_dump()
+            extra_columns = "," + ",".join(extra_params)
+            extra_values = "," + ",".join(":" + key for key in extra_params)
         self.connection.execute(
-            text("""INSERT INTO medlm.extraction_revisions
-            (id,user_id,analysis_id,job_id,revision,observations,fixture_id,fixture_sha256)
-            SELECT :id,:u,:a,:job,COALESCE(max(revision),0)+1,CAST(:data AS jsonb),:fixture,:hash
+            text(f"""INSERT INTO medlm.extraction_revisions
+            (id,user_id,analysis_id,job_id,revision,observations,fixture_id,fixture_sha256{extra_columns})
+            SELECT :id,:u,:a,:job,COALESCE(max(revision),0)+1,CAST(:data AS jsonb),:fixture,:hash{extra_values}
             FROM medlm.extraction_revisions WHERE user_id=:u AND analysis_id=:a"""),
             {
                 "id": identity,
@@ -144,6 +154,7 @@ class AnalysisRepository:
                 "data": extraction.model_dump_json(),
                 "fixture": provenance.fixture_id,
                 "hash": provenance.source_sha256,
+                **extra_params,
             },
         )
         self.connection.execute(

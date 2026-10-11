@@ -1,5 +1,23 @@
 # MedLM AI database design
 
+## Implemented synthetic extraction metadata (0008, 2026-10-08)
+
+Head is `0008_synthetic_extraction`, file `0008_synthetic_extraction_metadata.py`.
+No new tables. Reuse `extraction_revisions.fixture_id`, `fixture_sha256` for the original
+hash, `contract_version` and `provenance`. Add nullable `fixture_revision`,
+`sanitized_sha256`, `provider_id`, `model_id`, `pipeline_version` as an all-or-none
+metadata group. Existing immutable-history triggers cover these columns. New metadata
+is restricted to synthetic revision 1 / deterministic-v1 / synthetic-extraction-v1,
+unverified, schema 1, with both hashes matching owned retained upload inventory.
+
+`analysis_jobs.safe_error_code` permits adapter_failure/invalid_output only with failed,
+and no_observations only with needs_input. Null preserves earlier job behavior. Existing
+lease/state/version guards protect the terminal write; no raw error/message is stored.
+No observation JSON fields, indexes, owner FKs or RLS policies are changed. All prior
+migrations are unchanged. Optional synthetic_extraction_grants.sql adds only
+UPDATE(safe_error_code) after existing synthetic grants. Downgrade refuses populated
+new metadata/error codes; empty/legacy-only rollback restores the prior guard and schema.
+
 > Phase 3B Chunk 3 (2026-10-07): head is additive `0007_analysis_lifecycle`, following 0006. Only the explicitly injected synthetic harness uses lifecycle routes. No extraction, provider access, normal medical uploads or verification are enabled. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
 
 ## Implemented lifecycle extension (0007)

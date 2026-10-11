@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from alembic import command
+from alembic.script import ScriptDirectory
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from medlm_api.analysis_lifecycle import SyntheticAnalyses
@@ -403,14 +404,14 @@ def test_fresh_head_and_empty_roundtrip(isolated_database):
     command.upgrade(cfg, "0006_analysis_foundation")
     with engine.connect() as conn:
         before = snapshot(conn)
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, HEAD)  # Preserve the Chunk 3 migration checkpoint.
     with engine.connect() as conn:
         assert conn.scalar(text("SELECT version_num FROM alembic_version")) == HEAD
     command.downgrade(cfg, "0006_analysis_foundation")
     with engine.connect() as conn:
         assert snapshot(conn) == before
     command.downgrade(cfg, "base")
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, HEAD)
     with engine.connect() as conn:
         assert conn.scalar(text("SELECT version_num FROM alembic_version")) == HEAD
 
@@ -502,7 +503,10 @@ def test_populated_rollback_and_grants(lifecycle, isolated_database):
     with pytest.raises(DBAPIError, match="Lifecycle data exists"):
         command.downgrade(isolated_database[1], "0006_analysis_foundation")
     with engine.connect() as conn:
-        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == HEAD
+        assert (
+            conn.scalar(text("SELECT version_num FROM alembic_version"))
+            == ScriptDirectory.from_config(isolated_database[1]).get_current_head()
+        )
         assert not any(
             conn.execute(
                 text(

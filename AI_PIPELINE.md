@@ -1,5 +1,21 @@
 # MedLM AI extraction and verification pipeline
 
+> Phase 3B Chunk 4 (2026-10-08): controlled synthetic fixture extraction is implemented
+> only through explicit test-harness injection. It is not OCR/vision or authoritative
+> medical information. All pipeline stages below remain future design except the
+> contracts, lifecycle and deterministic adapter described in ADR 0007.
+
+The server resolves a registered fixture revision from an accepted upload's original
+SHA-256, MIME and document kind, then rehashes the sanitized stored PNG before adapter
+execution. Both hashes are retained with fixture/provider/model/pipeline metadata.
+The adapter returns observations only; the server supplies unreviewed/unverified
+revision metadata. Confidence never establishes acceptance or medical truth.
+Disabled providers/binding failures leave job state unchanged; execution failures or
+invalid output end failed, and valid empty observations end needs_input, without a
+revision. Partial/ambiguous valid output publishes immutably after fresh fencing checks.
+The disabled Astra boundary has no network transport or credentials; it cannot be
+enabled in this chunk and never receives automatic fallback traffic.
+
 > Phase 3B Chunk 3 (2026-10-07): contracts, persistence and the synthetic-only upload/job lifecycle are implemented, not the extraction pipeline below. Extraction adapters, semantic validation and evidence publication remain later chunks. Scores cannot cause acceptance. No provider calls or clinical claims are enabled. [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md) defines this limited implementation.
 
 The injected test harness links one accepted, allowlisted JPEG/PNG/WebP upload with

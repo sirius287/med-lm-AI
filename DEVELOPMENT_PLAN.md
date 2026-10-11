@@ -1,5 +1,38 @@
 # MedLM AI development plan
 
+Chunk 4 pre-commit review (2026-10-11): **242 backend/database tests passed**;
+focused malformed-output tests: **4 passed**. Ruff and `git diff --check` passed.
+Fixed absent-text semantic validation so invented alternatives, ambiguity or locations
+cannot enter a revision through nullable observations. Migration round-trips passed;
+an additional disposable check preserved populated Phase 3A medication/instruction
+records through 0005 -> 0007 -> 0008 -> 0007 -> 0008. Shared database remains at 0005.
+Nothing staged or committed; the earlier 241-test result below is historical.
+
+Current authorization (2026-10-08): Chunk 3 committed at 4775ed1; implement Chunk 4
+only. Controlled labelled fixtures, dual-hash registration, provider-neutral request/
+observation contracts, deterministic adapter, disabled Astra boundary and immutable
+revision publication are implemented locally. Migration 0008 adds only missing
+extraction metadata and safe terminal error codes. The approved outcomes are recorded
+in ADR 0007. No staging/commit/push authorization; Chunk 5+ remains unstarted.
+
+Default application endpoints, medical uploads, Flutter and provider/network execution
+remain unchanged/disabled. No credentials or new dependencies are required. Successful
+local synthetic tests do not validate OCR, medical facts, live model access or deployment.
+The dated Chunk 3/earlier sections below are historical validation checkpoints.
+
+Chunk 4 local validation (2026-10-08): **241 backend/database tests passed** (47 new
+Chunk 4 tests plus all prior regressions). Ruff and `git diff --check` passed.
+Disposable PostgreSQL tests covered base-to-head, 0007-to-0008, empty/legacy lifecycle
+rollback and populated extraction-metadata refusal. Tests exercised PNG/JPEG/WebP
+dual hashes, replay/concurrent extraction, stale/cancelled/expired/revoked/fenced work,
+CSRF/RLS/role restrictions, immutable revisions, empty/partial/ambiguous observations
+and prescription strength/dose separation. External HTTP was blocked in extraction
+integration tests; pure adapter tests also blocked socket connections. No provider
+call, API credential, package installation or clinical validation occurred.
+The shared test baseline remains 0005. Alembic path_separator and Starlette/httpx
+deprecations remain. Model selection/live access and real-world extraction quality
+are deliberately unverified; no release/production readiness claim is made.
+
 Current authorization (2026-10-07): Phase 3A is committed at f064621; Phase 3B Chunks 1/2 at edbadbc/abea49f. Chunk 3 implements only the explicitly injected synthetic upload/job lifecycle, migration 0007, leases/fencing, expiry and existing deletion-queue integration. The approved decisions and seven-chunk order are in [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md). No stage/commit authorization; Chunk 4+ remains unstarted.
 
 Chunk 2 validation covers empty/prior-schema migration and guarded rollback,

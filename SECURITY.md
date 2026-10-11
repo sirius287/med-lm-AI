@@ -1,5 +1,23 @@
 # MedLM AI security and privacy design
 
+> Chunk 4 (2026-10-08) retains the test-only injection gate. Explicit server fixture
+> registration binds original and sanitized hashes; client fixture/provider/provenance
+> overrides are rejected. Images are labelled synthetic tests, not clinical documents.
+
+Before adapter execution, rehash actual stored bytes and match registered metadata,
+owned upload inventory and original admitted hash. Recheck binding and authorization
+after execution, without holding a transaction during adapter work. Session revocation,
+cancellation, expiry, supersession and changed fencing block publication and failure
+writes alike. Existing encrypted replay and CSRF protections are reused.
+Only fixed error codes/messages are returned; exceptions/provider internals are neither
+stored nor logged by the adapter layer. Revision metadata is immutable, subject to
+owner RLS and existing composite FKs. New grant is only a named job error column.
+Runtime role restrictions, FORCE RLS and invoker-only functions are unchanged.
+No SDK, external HTTP transport, environment credential lookup, provider fallback,
+clinical release gate or real-upload enablement is introduced. Tests forbid external
+HTTP in extraction integration and socket connections in pure adapter tests; local
+PostgreSQL validation remains separate. Review-end handling remains later work.
+
 > Phase 3B Chunk 3 (2026-10-07): synthetic lifecycle is restricted to explicit test-environment dependency injection. Normal medical uploads remain disabled. Synthetic provenance is server-owned metadata, not client authorization. No confidence threshold, user confirmation or provider key establishes verification or opens release gates. See [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md).
 
 The lifecycle reuses existing upload authentication/account/session rechecks, transaction-local

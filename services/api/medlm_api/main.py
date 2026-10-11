@@ -48,6 +48,7 @@ def create_app(
     *,
     synthetic_uploads=None,
     synthetic_analyses=None,
+    synthetic_extraction=None,
 ) -> FastAPI:
     settings = settings or Settings()
     if synthetic_uploads is not None and settings.environment != "test":
@@ -58,6 +59,10 @@ def create_app(
         or synthetic_analyses.uploads is not synthetic_uploads
     ):
         raise ValueError("Analysis requires the same explicitly injected synthetic upload harness")
+    if synthetic_extraction is not None and (
+        synthetic_analyses is None or synthetic_extraction.lifecycle is not synthetic_analyses
+    ):
+        raise ValueError("Extraction requires the same explicitly injected analysis harness")
     db = Database(settings)
     provider = gateway or SupabaseGateway(settings)
     auth = AuthService(settings, db, provider)
@@ -223,7 +228,7 @@ def create_app(
     if synthetic_analyses is not None:
         from medlm_api.analysis_routes import analysis_router
 
-        router.include_router(analysis_router(synthetic_analyses))
+        router.include_router(analysis_router(synthetic_analyses, synthetic_extraction))
     from medlm_api.medication_routes import router as medication_router
 
     router.include_router(medication_router)

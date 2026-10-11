@@ -1,7 +1,8 @@
 # ADR 0007: Phase 3B synthetic analysis contracts
 
 Date: 2026-10-06; lifecycle update 2026-10-07. Base: f064621. Chunks 1/2 committed
-at edbadbc/abea49f. Chunk 3 synthetic lifecycle is implemented locally, uncommitted.
+at edbadbc/abea49f. Chunk 3 is committed at 4775ed1. Chunk 4 is implemented locally,
+uncommitted, under the approved outcome and dual-hash decisions (2026-10-08).
 This ADR supersedes historical phase numbering, not
 the safety, ownership or deletion invariants of ADRs 0002–0006.
 
@@ -130,8 +131,8 @@ clinical translation or interaction-clearance claim is enabled in this phase.
 
 1. Typed contracts, pure state machine, documentation and focused tests (committed edbadbc).
 2. Additive schema and least-privilege access (committed abea49f).
-3. Synthetic upload/job lifecycle (implemented locally; not committed).
-4. Extraction adapters and semantic validation (not started).
+3. Synthetic upload/job lifecycle (committed 4775ed1).
+4. Extraction adapters and semantic validation (implemented locally; not committed).
 5. Versioned mandatory review (not started).
 6. Evidence-gated report assembly (not started).
 7. Fixture-only Flutter workflow and full regression validation (not started).
@@ -174,3 +175,64 @@ lifecycle metadata; empty/legacy-only rollback restores 0006 without loss of his
 The API has no observation submission or completed target. Tests alone publish synthetic
 observations through the existing atomic repository path. Review-end handling, fixture
 adapters, reports and all Chunk 4+ functionality remain unimplemented.
+
+## Chunk 4: controlled extraction (2026-10-08)
+
+This section supersedes the earlier chunk checkpoints only for controlled synthetic
+extraction. No real uploads, live providers, evidence, reports, review service/UI,
+medication conversion or later chunks are enabled.
+
+Fixture registration is an explicit in-memory catalog of labelled synthetic test
+images and expected observations, never folder discovery or filename matching.
+Descriptors bind fixture ID/revision (currently revision 1), document kind, original
+MIME, original SHA-256, sanitized PNG SHA-256, observation schema version 1 and
+`synthetic_test_not_medical` purpose. Duplicate identity/hash registrations are refused.
+Original upload hashes remain enforced by existing byte allowlisting. Stored bytes
+are rehashed immediately before execution and matched against both storage inventory
+and the registered sanitized hash. Client requests contain no fixture/provider metadata.
+
+The deterministic adapter returns the existing observation contract. Semantic checks
+compare literal/normalized fields, nulls, line IDs/order and uncertainty against the
+registered expected observations. Partial output may omit observations/lines or leave
+normalization null; it cannot introduce unsupported non-null text or silently remove
+registered ambiguity from observed text. Empty valid output is needs_input even when
+the registered fixture contains text. Confidence never determines acceptance/rejection;
+its structure remains validated and its value is retained without calibration claims.
+Prescription test labels are not real prescriptions or dosage instructions; strength
+and dose stay separate. No medication or review record is created.
+
+An injected extraction service operates on an existing current queued job with a
+valid lease. Preflight checks authenticate owner/session and bind the retained upload
+before advancing validating -> extracting. The adapter runs without an open database
+transaction. A fresh owner/session/lease/version/content check precedes publication.
+Successful output advances retrieving -> validating_output -> completed atomically
+with an immutable revision. Retrieving performs no evidence retrieval in this chunk.
+
+Approved outcomes: disabled provider or invalid fixture binding returns a safe error
+before any processing transition; adapter failure/malformed output ends in failed,
+with only adapter_failure/invalid_output codes saved; valid output with no observed
+text ends in needs_input with no_observations and no revision. Partial/ambiguous
+observations publish unreviewed/unverified, with verified_at null. Stale, expired or
+cancelled work cannot publish even a failure over existing history. Review images
+retain the original deadline after completion; prior deletion safeguards are unchanged.
+
+POST /analyses/{id}/jobs/{job_id}/extract exists only with explicit test-harness
+injection, requires authentication/CSRF where applicable, Idempotency-Key and current
+job version/token/fence. Completed request replay reuses encrypted domain idempotency.
+Concurrent in-flight duplicates return conflict; interrupted execution needs a new
+attempt rather than reopening a job. No background worker is added.
+
+The provider-neutral interface returns observations only. Server-selected identity
+is captured before execution. DisabledAstraAdapter has no transport, SDK, environment
+lookup or credential field; enabled can only be false and model is unconfigured.
+Neither credentials nor adapter failure can trigger provider fallback. Real model
+selection/access and request translation remain unimplemented and unvalidated.
+
+Migration file 0008_synthetic_extraction_metadata.py uses revision ID
+0008_synthetic_extraction (within Alembic's existing 32-character limit). It reuses
+fixture_id, fixture_sha256 (original), contract_version and provenance, adding only
+fixture_revision, sanitized_sha256, provider_id, model_id and pipeline_version to
+immutable revisions, plus bounded terminal safe_error_code on jobs. Existing rows
+retain null new metadata. Owner/RLS/lease guards remain; metadata-bearing publication
+must match the owned upload hashes. Downgrade refuses new metadata/error codes and
+otherwise preserves legacy history. Only opt-in UPDATE(safe_error_code) is added.

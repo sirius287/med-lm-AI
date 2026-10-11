@@ -15,7 +15,7 @@ from medlm_api.analysis_lifecycle_contracts import (
 from medlm_api.auth_dependencies import current_identity
 
 
-def analysis_router(service):
+def analysis_router(service, extraction=None):
     router = APIRouter(prefix="/analyses", tags=["synthetic-analysis-lifecycle"])
 
     @router.post("", response_model=AnalysisView, status_code=201)
@@ -102,5 +102,26 @@ def analysis_router(service):
             body,
             job_id,
         )
+
+    if extraction is not None:
+        from medlm_api.synthetic_extraction import ExtractRequest, ExtractResponse
+
+        @router.post("/{analysis_id}/jobs/{job_id}/extract", response_model=ExtractResponse)
+        def extract(
+            analysis_id: UUID,
+            job_id: UUID,
+            body: ExtractRequest,
+            request: Request,
+            idempotency_key: str | None = Header(None),
+            identity=Depends(current_identity),
+        ):
+            return extraction.run(
+                request.app.state.database,
+                identity.principal,
+                analysis_id,
+                job_id,
+                body,
+                idempotency_key,
+            )
 
     return router

@@ -1,5 +1,17 @@
 # MedLM AI architecture
 
+> 2026-10-08: Chunk 3 is committed at 4775ed1. Chunk 4 adds an explicitly injected
+> controlled-fixture registry, deterministic extraction adapter and transactional
+> revision publication. Normal medical uploads and live AI remain disabled.
+
+Provider-neutral requests contain a server-validated descriptor and sanitized bytes.
+Adapters return observations without review/verification authority. The extraction
+service releases its transaction before adapter execution, then rechecks session,
+owner, current job/version, lease, expiry and content binding before atomic publication.
+Only registered synthetic labels are supported. The Astra boundary always reports
+disabled, has no transport/credential handling and cannot become active from environment
+configuration. No worker, evidence lookup, report or frontend flow is added.
+
 > 2026-10-07: Phase 3A is committed at f064621; Phase 3B Chunks 1/2 at edbadbc/abea49f. Chunk 3 adds a test-only, explicitly injected synthetic analysis lifecycle over the existing upload runtime and stable analysis persistence. The default application exposes no analysis routes. Extraction and provider execution remain unavailable. [ADR 0007](docs/adr/0007-phase-3b-synthetic-analysis.md) defines this boundary.
 
 The synthetic lifecycle reuses upload byte allowlisting, authenticated owner transactions,
