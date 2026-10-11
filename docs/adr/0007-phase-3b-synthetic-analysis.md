@@ -1,8 +1,8 @@
 # ADR 0007: Phase 3B synthetic analysis contracts
 
 Date: 2026-10-06; lifecycle update 2026-10-07. Base: f064621. Chunks 1/2 committed
-at edbadbc/abea49f. Chunk 3 is committed at 4775ed1. Chunk 4 is implemented locally,
-uncommitted, under the approved outcome and dual-hash decisions (2026-10-08).
+at edbadbc/abea49f. Chunk 3 is committed at 4775ed1; Chunk 4 at 97fa471.
+Chunk 5 human review is implemented locally, uncommitted (2026-10-11).
 This ADR supersedes historical phase numbering, not
 the safety, ownership or deletion invariants of ADRs 0002–0006.
 
@@ -132,8 +132,8 @@ clinical translation or interaction-clearance claim is enabled in this phase.
 1. Typed contracts, pure state machine, documentation and focused tests (committed edbadbc).
 2. Additive schema and least-privilege access (committed abea49f).
 3. Synthetic upload/job lifecycle (committed 4775ed1).
-4. Extraction adapters and semantic validation (implemented locally; not committed).
-5. Versioned mandatory review (not started).
+4. Extraction adapters and semantic validation (committed 97fa471).
+5. Versioned mandatory review (implemented locally; not committed).
 6. Evidence-gated report assembly (not started).
 7. Fixture-only Flutter workflow and full regression validation (not started).
 
@@ -236,3 +236,49 @@ immutable revisions, plus bounded terminal safe_error_code on jobs. Existing row
 retain null new metadata. Owner/RLS/lease guards remain; metadata-bearing publication
 must match the owned upload hashes. Downgrade refuses new metadata/error codes and
 otherwise preserves legacy history. Only opt-in UPDATE(safe_error_code) is added.
+
+## Chunk 5: approved human review (2026-10-11)
+
+Backend-only, explicitly injected synthetic harness. POST review-context prepares an
+empty, server-owned candidate set for the exact current completed extraction revision;
+candidate_id is always null. No product candidate is fabricated. For prescriptions it
+also creates immutable revision/line snapshots. A separate source_line_id retains the
+extracted UUID; relational IDs remain unique across repeated fixtures/revisions/users.
+GET review-context reads saved observations, expected keys and immutable review history.
+
+Submission requires the exact revision, candidate set and analysis version, all five
+packaging fields or all nine fields per prescription line, and a disposition for every
+line. Confirmed values equal exact raw_text, including whitespace/null. Corrections,
+including explicit null clearing, are stored separately; observations and uncertainty
+remain unchanged. No confidence threshold participates in review.
+
+Decisions are confirm/correct/reject/unresolved. Field statuses remain unchanged.
+Intermediate unresolved submissions append history and consume a concurrency version,
+but accept no values and create no prescription confirmation. Field-review progress
+may be recorded without acceptance. Included prescription lines require complete
+confirmed/corrected fields; excluded/unresolved lines remain represented without
+accepted instructions. Final confirm/correct require completed selected fields;
+correct requires at least one correction. Reject is a final review rejection, not
+cancellation, diagnosis or verification. Reject/unresolved receipts have no accepted
+values. Final prescription submissions create the existing immutable confirmation and
+all line dispositions; none authorizes medication creation or clinical use.
+
+Final review closes the workflow and atomically queues the existing deletion process
+using its completed reason. It cannot reopen or start re-extraction. Pending review
+retains its image only until the original deadline. Image deletion does not erase saved
+text/history, and actual deletion receipts remain the responsibility of existing workers
+and independent safeguards. User review never sets verified_at or changes verification.
+
+Identical receipt replay is permitted after image deletion/expiry, with fresh session,
+owner and exact current-revision checks; changed bodies and superseded revisions are
+rejected. Existing encrypted domain idempotency is reused. The immutable review row
+stores a canonical request hash and can reconstruct its original receipt after cache
+expiry, without another write. Other final submissions conflict. No transaction spans
+provider work and no provider is invoked. Human review uses any valid owner session,
+not a completed job's released processing lease.
+
+Migration 0009 adds only review metadata, source-line binding, uniqueness and invoker
+guards. It preserves FORCE RLS, composite owner FKs and existing restricted grants.
+Populated managed review/source-line rollback refuses safely; prior migrations and
+legacy history remain intact. No report, evidence, lookup, UI, notification or later
+chunk is implemented. Historical checkpoint sections above remain dated history.

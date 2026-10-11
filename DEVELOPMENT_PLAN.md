@@ -1,5 +1,24 @@
 # MedLM AI development plan
 
+Current authorization (2026-10-11): Chunk 4 committed at 97fa471; implement Chunk 5
+backend-only mandatory human review under the six approved interpretations. Contracts,
+review preparation/submission, immutable correction/history, prescription dispositions,
+atomic deletion enqueue and migration 0009 are implemented locally and validated.
+No staging/commit/push; Chunks 6/7, Flutter, providers and clinical enablement remain
+out of scope. Earlier authorization and test-count sections are historical checkpoints.
+
+Chunk 5 validation (2026-10-11): **279 passed, 0 failed, 0 skipped** in the full
+backend/database suite; **37 passed** in the focused review suite. Ruff and
+`git diff --check` passed. Disposable PostgreSQL covered fresh base -> head,
+0008 -> 0009 -> 0008, legacy extraction preservation and populated-review rollback
+refusal. A separate populated Phase 3A check preserved medication/instruction records
+through 0005 -> 0008 -> 0009 -> 0008 -> 0009. Shared database remains 0005.
+Owner/RLS, runtime role restrictions, CSRF/session/account checks, stale/concurrent
+reviews, immutable corrections, complete prescription coverage, atomic deletion and
+receipt replay after deletion/cache expiry passed. No provider call or credentials.
+The full run emitted 253 existing Alembic/Starlette deprecation warnings. Validation
+establishes synthetic review behavior only, not clinical or production readiness.
+
 Chunk 4 pre-commit review (2026-10-11): **242 backend/database tests passed**;
 focused malformed-output tests: **4 passed**. Ruff and `git diff --check` passed.
 Fixed absent-text semantic validation so invented alternatives, ambiguity or locations

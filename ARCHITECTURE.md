@@ -1,5 +1,17 @@
 # MedLM AI architecture
 
+> Chunk 5 (2026-10-11): backend-only human review is implemented locally over the
+> committed Chunk 4 extraction foundation (97fa471). New review domain validation,
+> HumanReviews orchestration and existing AnalysisRepository persistence operate only
+> through explicit synthetic test-harness injection. No Flutter or live integration.
+
+Review preparation is an authenticated POST, not a mutating GET. It creates empty
+candidate sets and exact prescription snapshots without identity inference. Parent
+locking and analysis versions serialize review, retry and cancellation. Intermediate
+history advances the version; final review and image-deletion enqueue commit together.
+Receipts and saved transcription remain independent of image availability. No job
+lease is reopened for human review; any valid current owner session can review.
+
 > 2026-10-08: Chunk 3 is committed at 4775ed1. Chunk 4 adds an explicitly injected
 > controlled-fixture registry, deterministic extraction adapter and transactional
 > revision publication. Normal medical uploads and live AI remain disabled.

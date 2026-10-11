@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 
 from medlm_domain.analysis import ExtractionResult, SyntheticProvenance
 from medlm_domain.extraction import ExtractionMetadata
+from medlm_domain.review import HumanReview
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
 
@@ -183,6 +184,164 @@ class AnalysisRepository:
             text("""UPDATE medlm.medicine_analyses SET cancelled_at=now(),version=version+1
             WHERE user_id=:u AND id=:a"""),
             {"u": self.user_id, "a": analysis_id},
+        )
+
+    def prepare_review(self, analysis_id, revision_id, extraction):
+        """Called under the existing stable-parent lock; never fabricates candidates."""
+        params = {"u": self.user_id, "a": analysis_id, "r": revision_id}
+        candidate_set = self.connection.scalar(
+            text(
+                "SELECT id FROM medlm.identity_candidate_sets WHERE user_id=:u AND extraction_revision_id=:r"
+            ),
+            params,
+        )
+        if candidate_set is None:
+            candidate_set = uuid4()
+            self.connection.execute(
+                text("""INSERT INTO medlm.identity_candidate_sets
+                (id,user_id,analysis_id,extraction_revision_id) VALUES (:id,:u,:a,:r)"""),
+                params | {"id": candidate_set},
+            )
+        if extraction.document_kind == "prescription":
+            draft = self.connection.scalar(
+                text(
+                    "SELECT id FROM medlm.analysis_prescription_drafts WHERE user_id=:u AND analysis_id=:a"
+                ),
+                params,
+            )
+            if draft is None:
+                draft, prescription = uuid4(), uuid4()
+                self.connection.execute(
+                    text(
+                        "INSERT INTO medlm.prescriptions(id,user_id,analysis_id) VALUES (:id,:u,:a)"
+                    ),
+                    params | {"id": prescription},
+                )
+                self.connection.execute(
+                    text("""INSERT INTO medlm.analysis_prescription_drafts
+                    (id,user_id,analysis_id,prescription_id) VALUES (:id,:u,:a,:p)"""),
+                    params | {"id": draft, "p": prescription},
+                )
+            pr = self.connection.scalar(
+                text("""SELECT id FROM medlm.analysis_prescription_revisions
+                WHERE user_id=:u AND extraction_revision_id=:r"""),
+                params,
+            )
+            if pr is None:
+                pr = uuid4()
+                self.connection.execute(
+                    text("""INSERT INTO medlm.analysis_prescription_revisions
+                    (id,user_id,analysis_id,draft_id,extraction_revision_id,revision)
+                    SELECT :id,:u,:a,:d,:r,COALESCE(max(revision),0)+1
+                    FROM medlm.analysis_prescription_revisions WHERE user_id=:u AND draft_id=:d"""),
+                    params | {"id": pr, "d": draft},
+                )
+                for line in extraction.lines:
+                    self.connection.execute(
+                        text("""INSERT INTO medlm.analysis_prescription_lines
+                        (id,user_id,analysis_id,draft_id,prescription_revision_id,ordinal,fields,source_line_id)
+                        VALUES (:id,:u,:a,:d,:pr,:ordinal,CAST(:fields AS jsonb),:source)"""),
+                        params
+                        | {
+                            "id": uuid4(),
+                            "d": draft,
+                            "pr": pr,
+                            "ordinal": line.ordinal,
+                            "fields": line.fields.model_dump_json(),
+                            "source": line.line_id,
+                        },
+                    )
+        return candidate_set
+
+    def append_review(self, analysis_id, revision_id, body: HumanReview, key, digest):
+        import json
+
+        params = {"u": self.user_id, "a": analysis_id, "r": revision_id}
+        if body.decision != "unresolved":
+            pr = (
+                self.connection.execute(
+                    text("""SELECT * FROM medlm.analysis_prescription_revisions
+                WHERE user_id=:u AND extraction_revision_id=:r"""),
+                    params,
+                )
+                .mappings()
+                .first()
+            )
+            if pr is not None:
+                confirmation = uuid4()
+                self.connection.execute(
+                    text("""INSERT INTO medlm.analysis_prescription_confirmations
+                    (id,user_id,analysis_id,draft_id,prescription_revision_id,request_key,analysis_version,reviewed_fields)
+                    VALUES (:id,:u,:a,:d,:pr,:key,:v,CAST(:fields AS jsonb))"""),
+                    params
+                    | {
+                        "id": confirmation,
+                        "d": pr["draft_id"],
+                        "pr": pr["id"],
+                        "key": key,
+                        "v": body.version,
+                        "fields": json.dumps(
+                            {
+                                "decision": body.decision,
+                                "fields": {k: v.model_dump() for k, v in body.fields.items()},
+                            }
+                        ),
+                    },
+                )
+                lines = (
+                    self.connection.execute(
+                        text("""SELECT * FROM medlm.analysis_prescription_lines
+                    WHERE user_id=:u AND prescription_revision_id=:pr ORDER BY ordinal"""),
+                        params | {"pr": pr["id"]},
+                    )
+                    .mappings()
+                    .all()
+                )
+                for line in lines:
+                    source = line["source_line_id"]
+                    self.connection.execute(
+                        text("""INSERT INTO medlm.analysis_prescription_confirmation_lines
+                        (id,user_id,analysis_id,draft_id,prescription_revision_id,confirmation_id,
+                          line_id,disposition,reviewed_fields)
+                        VALUES (:id,:u,:a,:d,:pr,:c,:line,:disposition,CAST(:fields AS jsonb))"""),
+                        params
+                        | {
+                            "id": uuid4(),
+                            "d": pr["draft_id"],
+                            "pr": pr["id"],
+                            "c": confirmation,
+                            "line": line["id"],
+                            "disposition": body.line_dispositions[source],
+                            "fields": json.dumps(
+                                {
+                                    k.split(".", 1)[1]: v.model_dump()
+                                    for k, v in body.fields.items()
+                                    if k.startswith(str(source) + ".")
+                                }
+                            ),
+                        },
+                    )
+        return (
+            self.connection.execute(
+                text("""INSERT INTO medlm.analysis_reviews
+            (id,user_id,analysis_id,extraction_revision_id,candidate_set_id,candidate_id,
+              request_key,analysis_version,decision,fields,review_schema_version,request_sha256,line_dispositions)
+            VALUES (:id,:u,:a,:r,:s,NULL,:key,:v,:decision,CAST(:fields AS jsonb),1,:hash,CAST(:lines AS jsonb))
+            RETURNING *"""),
+                params
+                | {
+                    "id": uuid4(),
+                    "s": body.candidate_set_id,
+                    "key": key,
+                    "v": body.version,
+                    "decision": body.decision,
+                    "hash": digest,
+                    "fields": json.dumps({k: v.model_dump() for k, v in body.fields.items()}),
+                    "lines": json.dumps({str(k): v for k, v in body.line_dispositions.items()}),
+                },
+            )
+            .mappings()
+            .one()
         )
 
     def erase(self, analysis_id: UUID, expected_version: int) -> None:

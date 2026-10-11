@@ -36,7 +36,7 @@ class ExtractionRevision(Contract):
 
 class ReviewSubmission(Contract):
     revision: Annotated[int, Field(strict=True, gt=0)]
-    decision: Literal["confirm", "correct", "reject"]
+    decision: Literal["confirm", "correct", "reject", "unresolved"]
     fields: dict[str, FieldReview] = Field(min_length=1, max_length=450)
 
     @model_validator(mode="after")

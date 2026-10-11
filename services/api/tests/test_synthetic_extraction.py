@@ -520,7 +520,7 @@ def test_migration_roundtrip(isolated_database):
         guard = c.scalar(
             text("SELECT pg_get_functiondef('medlm.guard_analysis_child()'::regprocedure)")
         )
-    command.upgrade(cfg, "head")
+    command.upgrade(cfg, HEAD)  # Preserve the Chunk 4 migration checkpoint.
     with engine.connect() as c:
         assert c.scalar(text("SELECT version_num FROM alembic_version")) == HEAD
     command.downgrade(cfg, "0007_analysis_lifecycle")

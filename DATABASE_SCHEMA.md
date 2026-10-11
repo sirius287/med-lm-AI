@@ -1,8 +1,33 @@
 # MedLM AI database design
 
+## Implemented human review extension (0009, 2026-10-11)
+
+`0009_human_review.py` follows 0008; prior migrations are unchanged. No new tables.
+`analysis_reviews` gains nullable review_schema_version=1, request_sha256 and
+line_dispositions as a complete metadata group, and allows the unresolved decision.
+New managed reviews consume the stable parent's version. Partial unique indexes
+prevent duplicate managed versions and more than one final managed review per analysis.
+Legacy review rows remain unchanged. Immutable review request hashes support existing
+domain idempotency after its encrypted cache expiry; no second replay table is added.
+
+`analysis_prescription_lines.source_line_id` preserves the extracted UUID separately
+from the relational row ID, allowing the same fixture's line IDs across revisions and
+owners. A partial unique index binds source identity within each prescription revision.
+Review preparation creates only empty candidate sets. Prescription snapshots assemble
+atomically using existing tables; intermediate history uses analysis_reviews only.
+Final submission creates the existing immutable confirmation and every disposition.
+
+Invoker guards enforce bounded, retained current input and closed-review protection.
+Deferred guards require version consumption and final deletion enqueue, and require
+managed final review for bounded prescription confirmation. Existing current-revision,
+owner FK, FORCE RLS and immutability guards remain. No runtime grants are broadened.
+Downgrade refuses managed reviews or source-line metadata; legacy-only rollback
+restores 0008 without erasing history. Full field/value semantics are enforced by the
+typed review service; direct relational constraints do not claim clinical validation.
+
 ## Implemented synthetic extraction metadata (0008, 2026-10-08)
 
-Head is `0008_synthetic_extraction`, file `0008_synthetic_extraction_metadata.py`.
+At the Chunk 4 checkpoint, head was `0008_synthetic_extraction`, file `0008_synthetic_extraction_metadata.py`.
 No new tables. Reuse `extraction_revisions.fixture_id`, `fixture_sha256` for the original
 hash, `contract_version` and `provenance`. Add nullable `fixture_revision`,
 `sanitized_sha256`, `provider_id`, `model_id`, `pipeline_version` as an all-or-none

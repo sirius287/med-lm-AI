@@ -1,5 +1,17 @@
 # MedLM AI extraction and verification pipeline
 
+> Chunk 5 (2026-10-11): synthetic-only authenticated human review is implemented
+> behind explicit test-harness injection. Review preparation binds an empty candidate
+> set and, for prescriptions, immutable line snapshots to the exact current extraction.
+> No candidate identity, evidence or clinical verification is produced.
+
+Every submission covers all observed field keys and prescription line dispositions.
+Confirmed values equal literal raw_text (including whitespace/null); corrections are
+separate immutable records. Unresolved submissions append history without accepting
+values. Final confirm/correct/reject closes review and queues existing image deletion
+atomically. Confidence is never an acceptance criterion. Reviewed transcription stays
+unverified, verified_at=null; no medication, report or provider execution is triggered.
+
 > Phase 3B Chunk 4 (2026-10-08): controlled synthetic fixture extraction is implemented
 > only through explicit test-harness injection. It is not OCR/vision or authoritative
 > medical information. All pipeline stages below remain future design except the

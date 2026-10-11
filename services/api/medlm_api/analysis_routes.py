@@ -15,7 +15,7 @@ from medlm_api.analysis_lifecycle_contracts import (
 from medlm_api.auth_dependencies import current_identity
 
 
-def analysis_router(service, extraction=None):
+def analysis_router(service, extraction=None, reviews=None):
     router = APIRouter(prefix="/analyses", tags=["synthetic-analysis-lifecycle"])
 
     @router.post("", response_model=AnalysisView, status_code=201)
@@ -122,6 +122,39 @@ def analysis_router(service, extraction=None):
                 job_id,
                 body,
                 idempotency_key,
+            )
+
+    if reviews is not None:
+        from medlm_domain.review import HumanReview, ReviewTarget
+
+        from medlm_api.analysis_review import ReviewContext, ReviewReceipt
+
+        @router.post("/{analysis_id}/review-context", response_model=ReviewContext)
+        def prepare_review(
+            analysis_id: UUID,
+            body: ReviewTarget,
+            request: Request,
+            idempotency_key: str | None = Header(None),
+            identity=Depends(current_identity),
+        ):
+            return reviews.prepare(
+                request.app.state.database, identity.principal, analysis_id, body, idempotency_key
+            )
+
+        @router.get("/{analysis_id}/review-context", response_model=ReviewContext)
+        def review_context(analysis_id: UUID, request: Request, identity=Depends(current_identity)):
+            return reviews.get(request.app.state.database, identity.principal, analysis_id)
+
+        @router.post("/{analysis_id}/reviews", response_model=ReviewReceipt, status_code=201)
+        def review(
+            analysis_id: UUID,
+            body: HumanReview,
+            request: Request,
+            idempotency_key: str | None = Header(None),
+            identity=Depends(current_identity),
+        ):
+            return reviews.submit(
+                request.app.state.database, identity.principal, analysis_id, body, idempotency_key
             )
 
     return router

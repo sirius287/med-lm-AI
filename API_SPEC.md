@@ -1,5 +1,35 @@
 # MedLM AI API specification
 
+## Chunk 5 injected synthetic review API (2026-10-11)
+
+These routes exist only with explicit synthetic review harness injection, not in the
+normal application. All require current authenticated ownership; cookie mutations
+require Origin/CSRF. POSTs require a UUID Idempotency-Key.
+
+| Route | Contract |
+|---|---|
+| POST `/api/v1/analyses/{id}/review-context` | `{version,revision}`; prepares server-owned empty candidate set and prescription snapshots; returns ReviewContext |
+| GET `/api/v1/analyses/{id}/review-context` | Current completed extraction, candidate-set ID, expected field keys, immutable review history, original deadline and separate image availability |
+| POST `/api/v1/analyses/{id}/reviews` | `{version,revision,candidate_set_id,candidate_id:null,decision,fields,line_dispositions}`; returns immutable ReviewReceipt, 201 |
+
+Decisions: confirm/correct/reject/unresolved. Field keys are the five MedicineFields
+names for packaging, or `<extracted-line-uuid>.<PrescriptionFields-name>` for all nine
+fields of every prescription line. Each field is `{status,reviewed_value}` using the
+existing four field statuses. Every line UUID needs included/excluded/unresolved.
+Included lines require confirmed/corrected fields; confirmed values must exactly equal
+raw_text, including null/whitespace. Missing/extra keys or semantic mismatch return 422.
+Confirm requires confirmed selected fields; correct requires completed selected fields
+with at least one correction. Reject/unresolved receipts expose no accepted_values;
+excluded/unresolved lines are never included in accepted_values. This property describes
+user-reviewed transcription only, not prescription validity or clinical safety.
+
+Stale versions/revisions/candidate sets, conflicting finals and changed replay bodies
+return 409; expired/unavailable review input returns 410. Same-key/body receipt replay
+remains possible after image deletion/expiry, after fresh owner/session and current
+revision checks. Immutable review request hashes preserve replay binding after the
+existing 24-hour encrypted idempotency cache expires. No separate replay table is added.
+Saved text can be read after image deletion; expired review cannot accept new writes.
+
 > Phase 3B Chunk 4 (2026-10-08): an additional explicitly injected synthetic extraction
 > route is implemented. Normal-app routes/OpenAPI and Flutter remain unchanged.
 

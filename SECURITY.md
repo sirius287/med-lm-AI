@@ -1,5 +1,21 @@
 # MedLM AI security and privacy design
 
+> Chunk 5 (2026-10-11): synthetic human reviews reuse current_identity, cookie CSRF,
+> session/account checks, transaction-local owner context, logout locks and per-user
+> domain idempotency serialization. Reviews are tied to the exact completed extraction
+> and server-created empty candidate set. No client owner/provenance/verification input.
+
+Parent locking and versions reject stale/conflicting reviews and new attempts invalidate
+pending reviews immediately. Final reviews cannot reopen. Review request hashes bind
+persistent receipts to the original request after encrypted cache expiry; replay still
+requires a valid owner session and the same current revision. It never reactivates an
+image or returns storage capabilities. History retains sensitive user transcription
+under the existing text retention policy; hashes are not an anonymization claim.
+Final review queues existing deletion jobs in the same transaction; receipts still
+require actual object deletion by the existing independent safeguards. Unresolved
+review cannot extend the original deadline. Saved text reads are separate from image
+availability. No normal-app route, clinical release gate, credential or bypass is added.
+
 > Chunk 4 (2026-10-08) retains the test-only injection gate. Explicit server fixture
 > registration binds original and sanitized hashes; client fixture/provider/provenance
 > overrides are rejected. Images are labelled synthetic tests, not clinical documents.
