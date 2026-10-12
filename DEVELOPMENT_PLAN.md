@@ -1,10 +1,12 @@
 # MedLM AI development plan
 
-Current authorization (2026-10-11): Chunk 4 committed at 97fa471; implement Chunk 5
-backend-only mandatory human review under the six approved interpretations. Contracts,
+Current checkpoint (2026-10-12): Chunk 4 committed at 97fa471; Chunk 5 committed at
+4ac50ca (Phase 3B Chunk 5: human review workflow). Backend-only mandatory human review
+implements the six approved interpretations. Contracts,
 review preparation/submission, immutable correction/history, prescription dispositions,
-atomic deletion enqueue and migration 0009 are implemented locally and validated.
-No staging/commit/push; Chunks 6/7, Flutter, providers and clinical enablement remain
+atomic deletion enqueue and migration 0009 are committed and locally validated.
+Only documentation reconciliation is currently authorized; no staging/commit/push.
+Chunks 6/7, Flutter, providers and clinical enablement remain
 out of scope. Earlier authorization and test-count sections are historical checkpoints.
 
 Chunk 5 validation (2026-10-11): **279 passed, 0 failed, 0 skipped** in the full

@@ -2,7 +2,7 @@
 
 Date: 2026-10-06; lifecycle update 2026-10-07. Base: f064621. Chunks 1/2 committed
 at edbadbc/abea49f. Chunk 3 is committed at 4775ed1; Chunk 4 at 97fa471.
-Chunk 5 human review is implemented locally, uncommitted (2026-10-11).
+Chunk 5 human review is committed at 4ac50ca (2026-10-11).
 This ADR supersedes historical phase numbering, not
 the safety, ownership or deletion invariants of ADRs 0002–0006.
 
@@ -133,7 +133,7 @@ clinical translation or interaction-clearance claim is enabled in this phase.
 2. Additive schema and least-privilege access (committed abea49f).
 3. Synthetic upload/job lifecycle (committed 4775ed1).
 4. Extraction adapters and semantic validation (committed 97fa471).
-5. Versioned mandatory review (implemented locally; not committed).
+5. Versioned mandatory review (committed 4ac50ca).
 6. Evidence-gated report assembly (not started).
 7. Fixture-only Flutter workflow and full regression validation (not started).
 
