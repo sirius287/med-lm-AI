@@ -1,5 +1,19 @@
 # MedLM AI security and privacy design
 
+> Chunk 6 (2026-10-12): report reads reuse synthetic owner/session transactions and the
+> stable-parent lock. They neither refresh expiry nor mutate domain records. Saved text
+> remains readable after image cancellation/expiry/deletion, consistent with review GET;
+> erasure removes the parent and returns 404. No object access, evidence ingestion or
+> credential is exposed. Invalid/stale review snapshots fail closed. Normal-app routes,
+> grants and FORCE RLS are unchanged; final human confirmation never verifies medicine.
+
+Audit correction (2026-10-15): analysis text erasure also clears encrypted extraction/
+review replay responses for the exact owner/resource, retaining only existing invalidated
+request records until their original expiry. This uses the manual-management erasure
+mechanism and leaves upload inventory/deletion receipts untouched. Manual medication
+transactions recheck principal expiry after acquiring the existing locks, preventing a
+request authenticated earlier from writing after its session expires while waiting.
+
 > Chunk 5 (2026-10-11): synthetic human reviews reuse current_identity, cookie CSRF,
 > session/account checks, transaction-local owner context, logout locks and per-user
 > domain idempotency serialization. Reviews are tied to the exact completed extraction

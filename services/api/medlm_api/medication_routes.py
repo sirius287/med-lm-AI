@@ -15,7 +15,7 @@ from medlm_domain.scheduling import local_instant
 
 from medlm_api.auth import SessionRepository
 from medlm_api.auth_dependencies import current_identity
-from medlm_api.domain_idempotency import idempotent
+from medlm_api.domain_idempotency import idempotent, utcnow
 from medlm_api.errors import AppError
 from medlm_api.medication_contracts import (
     EventView,
@@ -47,6 +47,8 @@ def context(request: Request, identity=Depends(current_identity)):
             uid=str(principal.user_id),
         )
         SessionRepository.check_access_in(conn, principal)
+        if principal.expires_at <= utcnow():
+            raise AppError(401, "invalid_session", "Sign in again.")
         yield MedicationService(
             conn, principal.user_id, request.app.state.settings.medication_encryption_key
         )

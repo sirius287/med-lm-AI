@@ -1,5 +1,12 @@
 # MedLM AI extraction and verification pipeline
 
+> Chunk 6 (2026-10-12): backend-only on-demand synthetic report projection is implemented
+> behind explicit test injection. No evidence retrieval, report persistence or provider
+> execution is added. Original observations, ambiguity, user corrections/dispositions and
+> medical-information fields remain separate. All medical fields are unavailable because
+> no authoritative source was checked, regardless of confidence or human confirmation.
+> Pure test evidence can demonstrate conflicts but can never supply a medical value.
+
 > Chunk 5 (2026-10-11): synthetic-only authenticated human review is implemented
 > behind explicit test-harness injection. Review preparation binds an empty candidate
 > set and, for prescriptions, immutable line snapshots to the exact current extraction.

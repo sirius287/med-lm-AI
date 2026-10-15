@@ -47,6 +47,23 @@ def create(client):
     return response.json()
 
 
+def test_session_expiring_after_authentication_cannot_write(manual, monkeypatch):
+    from medlm_api import medication_routes
+
+    client, engine, _ = manual
+    # Authentication succeeds first. Time at the transaction boundary advances
+    # beyond the verified principal's expiry (for example while waiting on locks).
+    principal = client.app.state.auth.native("synthetic-access")
+    monkeypatch.setattr(
+        medication_routes, "utcnow", lambda: principal.expires_at + timedelta(seconds=1)
+    )
+    response = post(client, "/medications", BODY)
+    assert response.status_code == 401, response.text
+    assert response.json()["error"]["code"] == "invalid_session"
+    with engine.connect() as conn:
+        assert conn.scalar(text("SELECT count(*) FROM medlm.medications")) == 0
+
+
 def activate(client, record):
     now = datetime.now(UTC)
     body = dict(

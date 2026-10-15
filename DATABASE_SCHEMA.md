@@ -1,5 +1,11 @@
 # MedLM AI database design
 
+> Chunk 6 (2026-10-12) adds no schema or migration. Head remains 0009_human_review.
+> Reports are read-only projections of existing extraction/review rows under the stable
+> parent lock and current owner transaction. No verification_sources data is created/read
+> by report assembly. Proposed report tables below remain future design; all prior
+> migrations, ownership constraints, immutable guards, RLS and grants remain unchanged.
+
 ## Implemented human review extension (0009, 2026-10-11)
 
 `0009_human_review.py` follows 0008; prior migrations are unchanged. No new tables.

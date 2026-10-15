@@ -50,6 +50,7 @@ def create_app(
     synthetic_analyses=None,
     synthetic_extraction=None,
     synthetic_reviews=None,
+    synthetic_reports=None,
 ) -> FastAPI:
     settings = settings or Settings()
     if synthetic_uploads is not None and settings.environment != "test":
@@ -68,6 +69,10 @@ def create_app(
         synthetic_analyses is None or synthetic_reviews.lifecycle is not synthetic_analyses
     ):
         raise ValueError("Reviews require the same explicitly injected analysis harness")
+    if synthetic_reports is not None and (
+        synthetic_analyses is None or synthetic_reports.lifecycle is not synthetic_analyses
+    ):
+        raise ValueError("Reports require the same explicitly injected analysis harness")
     db = Database(settings)
     provider = gateway or SupabaseGateway(settings)
     auth = AuthService(settings, db, provider)
@@ -234,7 +239,9 @@ def create_app(
         from medlm_api.analysis_routes import analysis_router
 
         router.include_router(
-            analysis_router(synthetic_analyses, synthetic_extraction, synthetic_reviews)
+            analysis_router(
+                synthetic_analyses, synthetic_extraction, synthetic_reviews, synthetic_reports
+            )
         )
     from medlm_api.medication_routes import router as medication_router
 

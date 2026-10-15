@@ -15,7 +15,7 @@ from medlm_api.analysis_lifecycle_contracts import (
 from medlm_api.auth_dependencies import current_identity
 
 
-def analysis_router(service, extraction=None, reviews=None):
+def analysis_router(service, extraction=None, reviews=None, reports=None):
     router = APIRouter(prefix="/analyses", tags=["synthetic-analysis-lifecycle"])
 
     @router.post("", response_model=AnalysisView, status_code=201)
@@ -155,6 +155,21 @@ def analysis_router(service, extraction=None, reviews=None):
         ):
             return reviews.submit(
                 request.app.state.database, identity.principal, analysis_id, body, idempotency_key
+            )
+
+    if reports is not None:
+        from fastapi import Query
+        from medlm_domain.report import AnalysisReport
+
+        @router.get("/{analysis_id}/report", response_model=AnalysisReport)
+        def report(
+            analysis_id: UUID,
+            request: Request,
+            revision: int = Query(gt=0),
+            identity=Depends(current_identity),
+        ):
+            return reports.get(
+                request.app.state.database, identity.principal, analysis_id, revision
             )
 
     return router

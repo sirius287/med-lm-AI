@@ -353,6 +353,14 @@ class AnalysisRepository:
         ).one_or_none()
         if row is None or row.version != expected_version:
             raise AnalysisConflict("Analysis unavailable or stale")
+        # Replay responses contain extraction/review text too. Reuse the existing
+        # erasure marker without retaining that text or extending request expiry.
+        self.connection.execute(
+            text("""UPDATE medlm.idempotency_records
+            SET encrypted_response='',invalidated=true
+            WHERE user_id=:u AND resource_id=:a"""),
+            {"u": self.user_id, "a": analysis_id},
+        )
         self.connection.execute(
             text("DELETE FROM medlm.prescriptions WHERE user_id=:u AND analysis_id=:a"),
             {"u": self.user_id, "a": analysis_id},

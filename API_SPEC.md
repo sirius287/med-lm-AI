@@ -1,5 +1,37 @@
 # MedLM AI API specification
 
+## Chunk 6 synthetic report projection (2026-10-12)
+
+Explicit test-harness injection alone enables authenticated GET
+`/api/v1/analyses/{id}/report?revision=N` (positive current extraction revision).
+The normal app exposes no report route. No POST, client evidence, lookup or report
+persistence is added. Missing/invalid revision returns 422, stale/incomplete current
+extraction returns 409, foreign/erased analysis returns 404, invalid session returns 401.
+
+`AnalysisReport` separates original `observations`, `review_history` (including field
+corrections and line dispositions), eligible `accepted_transcription`,
+`observation_conflicts`, all 24 medical-information `fields`, and synthetic provenance.
+It includes analysis version, extraction revision ID/number, schema/assembler versions,
+country/locale, extraction metadata, original expiry and image availability.
+Only final confirm/correct contributes accepted transcription; it is never medical truth.
+The service checks no authoritative sources: every medical field is unavailable,
+value=null, reason=no_authoritative_source_checked, evidence_refs=[]; evidence=[].
+The pure contract also supports server-test-only conflicting synthetic evidence, retaining
+all alternatives/references with value=null. Fixture hashes are provenance, not evidence.
+verification_status=unverified; product_id, verified_at and source_checked_at remain null.
+No clinical translation is generated from the stored locale.
+
+GET projects saved text after image deletion/expiry/cancellation, without changing
+processing, review, expiry or deletion records. Analysis erasure removes access. Required
+owner/session checks and current-revision matching still apply. No mutation/idempotency
+key or CSRF token is needed for this read; existing cookie authentication remains required.
+
+Audit hardening (2026-10-15): malformed stored observations produce the safe
+409/report_unavailable response; authorization, database and unrelated programming errors
+retain their existing handling. The strict report contract requires complete conflict
+references and observation summaries matching the immutable extraction. Analysis erasure
+also clears its owned encrypted replay bodies without extending replay-record expiry.
+
 ## Chunk 5 injected synthetic review API (2026-10-11)
 
 These routes exist only with explicit synthetic review harness injection, not in the

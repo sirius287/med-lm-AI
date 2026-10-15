@@ -134,7 +134,7 @@ clinical translation or interaction-clearance claim is enabled in this phase.
 3. Synthetic upload/job lifecycle (committed 4775ed1).
 4. Extraction adapters and semantic validation (committed 97fa471).
 5. Versioned mandatory review (committed 4ac50ca).
-6. Evidence-gated report assembly (not started).
+6. Evidence-gated report assembly (implemented locally; uncommitted).
 7. Fixture-only Flutter workflow and full regression validation (not started).
 
 Chunk 1 acceptance: invalid/extra fields, null handling, coordinates, distinct
@@ -282,3 +282,36 @@ guards. It preserves FORCE RLS, composite owner FKs and existing restricted gran
 Populated managed review/source-line rollback refuses safely; prior migrations and
 legacy history remain intact. No report, evidence, lookup, UI, notification or later
 chunk is implemented. Historical checkpoint sections above remain dated history.
+
+## Chunk 6: on-demand synthetic report projection (2026-10-12)
+
+Approved scope: backend-only, no report persistence or migrations. Explicit test injection
+enables a GET for an exact current completed extraction revision, even before review.
+Read one owner-authorized snapshot under the existing parent lock; no transaction spans
+external work. Revision changes, erasure and review writes serialize with this read.
+
+Keep original observations, immutable corrections/history, prescription line identities
+and dispositions, observation ambiguity, synthetic provenance and medical information
+separate. Only eligible final confirm/correct produces accepted transcription; rejected,
+intermediate, malformed or stale review cannot become accepted values. All 24 required
+medical keys remain explicit. The service has no source integration and emits unavailable
+fields, null values and no_authoritative_source_checked. No source-check date is invented.
+Pure server-test descriptors can demonstrate conflicting alternatives/references while
+keeping the value null; no synthetic descriptor is authoritative or accepted from HTTP.
+Fixture provenance never becomes evidence. Product ID and verified_at stay null and
+verification stays unverified. No clinical translation or medical explanation is generated.
+
+Cancellation prevents new work but does not erase saved text. Report reads follow existing
+review saved-text access after cancellation, original expiry and image deletion, while
+explicitly reporting image availability. They do not refresh, reopen or extend anything.
+Analysis erasure removes access. Final-review image deletion remains independent and intact.
+No Chunk 7, Flutter, provider, clinical upload, lookup or automatic medication functionality.
+
+Audit hardening (2026-10-15) preserves these decisions: report input validation fails
+safely without masking unrelated errors, and field/evidence conflicts plus observation
+summaries must agree with their original inputs. Analysis text erasure includes owned
+encrypted replay bodies; existing invalidated request markers retain their original expiry.
+Verified upload inventory/receipts stay independent. No migration or security grant change.
+Additional tests exercise saved-text reads after expiry/metadata removal and serialization
+with erasure. Detailed findings and fresh validation are in
+[the Chunk 6 engineering audit](../PHASE_3B_CHUNK_6_AUDIT.md).

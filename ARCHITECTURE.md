@@ -1,5 +1,12 @@
 # MedLM AI architecture
 
+> Chunk 6 (2026-10-12): `medlm_domain.report` provides strict report contracts and pure
+> assembly; `medlm_api.analysis_report.SyntheticReports` projects an owner-locked current
+> completed extraction and immutable review history. Only explicit test-harness injection
+> registers the GET route. No database schema, grants, provider or Flutter changes.
+> There is no stored report identity/history: schema/assembler version plus extraction
+> revision and review IDs describe this projection. Future persisted reports remain design.
+
 > Chunk 5 (2026-10-11): backend-only human review is implemented locally over the
 > committed Chunk 4 extraction foundation (97fa471). New review domain validation,
 > HumanReviews orchestration and existing AnalysisRepository persistence operate only

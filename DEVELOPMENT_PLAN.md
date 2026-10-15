@@ -1,5 +1,41 @@
 # MedLM AI development plan
 
+Audit checkpoint (2026-10-15): HEAD remains cdadf34 on main; Chunks 1-5 are committed.
+Chunk 6 and its report hardening are uncommitted, pending human review. The audit
+also reproduced and corrected two small existing defects: medication transactions now
+recheck principal expiry after locking, and analysis erasure clears owned encrypted
+replay bodies using the existing invalidation mechanism. No schema/grants changed.
+Additional regressions cover report reads after original image expiry, verified upload
+metadata removal and concurrent analysis erasure. See
+[Chunk 6 engineering audit](docs/PHASE_3B_CHUNK_6_AUDIT.md) for scope, findings and fresh
+validation. Historical validation counts below remain dated records. No staging,
+commit, push or Chunk 7 work is authorized before review and explicit commit approval.
+
+Fresh audit validation: **82 focused tests passed** and **334 full backend/database
+tests passed, 0 failed, 0 skipped** (301.43 seconds). Ruff, generated manual-client parity
+and `git diff --check` passed. All database writes used verified disposable local
+databases; shared data fingerprint and migration 0005 baseline were unchanged. The full
+run emitted 271 existing Alembic/Starlette deprecation warnings. No Flutter files changed
+or fresh frontend/device build claim was made. See the audit for commands and findings.
+
+Current authorization (2026-10-12): implement Phase 3B Chunk 6 only from cdadf34.
+The backend-only synthetic report projection is implemented locally, uncommitted and
+validated. It adds strict report contracts, an explicitly injected GET
+and tests, without migrations, report persistence, providers, clinical facts or Flutter.
+Existing migrations and synthetic records may run only in verified disposable local
+test databases; the shared development database must remain unchanged. No stage/commit/
+push or Chunk 7 authorization. Earlier authorization paragraphs are historical checkpoints.
+
+Chunk 6 validation (2026-10-12): **31 focused tests passed**; full backend/database
+suite **310 passed, 0 failed, 0 skipped** (296.52 seconds). Ruff and `git diff --check`
+passed. Existing migration/RLS/grant/medication regressions ran only in verified random
+disposable local PostgreSQL databases. Shared database data fingerprint and migration
+0005 baseline were unchanged; disposable suite databases were removed. No migration or
+grant files changed. Initial focused testing corrected two test assumptions (expiry must
+not also expire authentication; disabled accounts return 401); final targeted/full runs
+passed. Full suite emitted 265 existing Alembic/Starlette deprecation warnings. No live
+provider or clinical capability was validated. No staging, commit or push.
+
 Current checkpoint (2026-10-12): Chunk 4 committed at 97fa471; Chunk 5 committed at
 4ac50ca (Phase 3B Chunk 5: human review workflow). Backend-only mandatory human review
 implements the six approved interpretations. Contracts,
