@@ -3,6 +3,7 @@
 Date: 2026-10-06; lifecycle update 2026-10-07. Base: f064621. Chunks 1/2 committed
 at edbadbc/abea49f. Chunk 3 is committed at 4775ed1; Chunk 4 at 97fa471.
 Chunk 5 human review is committed at 4ac50ca (2026-10-11).
+Chunk 6 report assembly is committed at 7b3d4eb (2026-10-15).
 This ADR supersedes historical phase numbering, not
 the safety, ownership or deletion invariants of ADRs 0002–0006.
 
@@ -134,8 +135,27 @@ clinical translation or interaction-clearance claim is enabled in this phase.
 3. Synthetic upload/job lifecycle (committed 4775ed1).
 4. Extraction adapters and semantic validation (committed 97fa471).
 5. Versioned mandatory review (committed 4ac50ca).
-6. Evidence-gated report assembly (implemented locally; uncommitted).
-7. Fixture-only Flutter workflow and full regression validation (not started).
+6. Evidence-gated report assembly (committed 7b3d4eb).
+7. Fixture-only Flutter workflow and full regression validation (implemented/validated
+   locally 2026-10-15; uncommitted and awaiting review).
+
+Chunk 7 uses explicit Flutter dependency injection and automated tests, with no new
+authentication bootstrap/bypass or normal-app route. Bundle a generated catalog from
+registered server synthetic fixtures, including supported empty/ambiguous variants.
+Client descriptors are descriptive, not admission authority or medical evidence.
+No fixture-download API, camera/picker, automatic medication transfer, provider calls,
+new migrations/grants or deployment. Interactive cross-platform backend authentication
+validation requires a separate decision. Historical audit/test records remain unchanged.
+
+The workflow's service/controller/provider layer, fixture selection, observation,
+review and report widgets live only under `apps/medlm/lib/analysis`. They are mounted
+through explicit service injection, not app routing. All packaging fields and all nine
+fields per prescription line are covered; line dispositions preserve original identities.
+Corrections and final receipts stay separate from original observations and verification.
+All 24 report information fields are shown as unavailable because no source was checked.
+Generated catalog identity is descriptive; actual admission and dual-hash checks remain
+server responsibilities. The catalog contains the five registered document kinds plus
+empty/ambiguous box and prescription variants. No arbitrary client fixture registration.
 
 Chunk 1 acceptance: invalid/extra fields, null handling, coordinates, distinct
 strength/dose, uncalibrated confidence, independent states and invalid transitions

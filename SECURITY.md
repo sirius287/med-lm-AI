@@ -1,5 +1,19 @@
 # MedLM AI security and privacy design
 
+> Chunk 7 (2026-10-15): synthetic Flutter UI requires explicit service injection and
+> the existing authenticated account scope; normal routes and authentication remain
+> unchanged. Owner/session changes dispose memory state and invalidate late responses.
+> No user image, transcription, correction or report is persisted on the client
+> by this workflow; existing bounded server storage/text retention remains in effect.
+
+Bundled synthetic PNGs are generated from explicit server fixture definitions. Client
+labels/hashes cannot override server identity, provenance, verification or content admission.
+The workflow exposes no picker, camera, arbitrary URL or provider choice. Literal review
+is explicit, uncertain mutation bodies/keys stay frozen for safe replay, and stale or erased
+snapshots are hidden. Image expiry/cancellation and saved-text retention remain distinct;
+no client reports physical deletion merely because cancellation was accepted. Final review
+does not establish medical truth. There are no new grants, migrations, secrets or bypasses.
+
 > Chunk 6 (2026-10-12): report reads reuse synthetic owner/session transactions and the
 > stable-parent lock. They neither refresh expiry nor mutate domain records. Saved text
 > remains readable after image cancellation/expiry/deletion, consistent with review GET;
