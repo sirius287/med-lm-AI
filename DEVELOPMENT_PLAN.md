@@ -1,15 +1,38 @@
 # MedLM AI development plan
 
-Audit checkpoint (2026-10-15): HEAD remains cdadf34 on main; Chunks 1-5 are committed.
-Chunk 6 and its report hardening are uncommitted, pending human review. The audit
+Current checkpoint (2026-10-18): HEAD is 1474f15 on main. Chunks 1-6 are committed;
+Chunk 6 is 7b3d4eb. Commit 1474f15 contains the initial Chunk 7 portion (22 files).
+The remaining 18 Chunk 7 companion files are still uncommitted. A follow-up companion
+commit is planned after validation and explicit human approval, preserving 1474f15.
+This documentation correction also changes SECURITY.md beyond those 18 companions.
+Chunk 7 is authorized for an explicitly injected, automated Flutter synthetic harness
+and a generated catalog of registered fixtures. No runnable authentication bootstrap,
+normal-app analysis routes, live integrations, migrations or grants are authorized.
+No staging/commit/push is authorized. Preserve manual medication behavior.
+
+The dated validation records below are historical; no tests or builds were rerun for
+this documentation correction.
+
+Chunk 7 implementation/validation (2026-10-15): **71 focused Flutter tests**, **162 full
+Flutter tests**, and **336 backend/database tests passed, 0 failed, 0 skipped**. The
+focused subset includes 25 language/theme/accessibility cases. Three focused Python
+contract tests, contract/catalog/manual-client parity, Flutter analysis, Web build,
+Android debug build, Ruff and whitespace checks passed. Backend validation emitted
+271 existing deprecation warnings; all database writes used verified disposable local
+databases, the shared 0005 baseline/fingerprint stayed unchanged, and the cluster was
+returned to its original stopped state. The additional Chrome-targeted run stalled at
+test loading and was interrupted with zero completed tests; browser-runtime validation
+is explicitly unverified. See docs/PHASE_3B_CHUNK_7_REPORT.md for commands, files and limits.
+Remaining Chunk 7 companions await validation and human review. No later work is authorized.
+
+Historical pre-commit audit checkpoint (2026-10-15, base cdadf34): the audit
 also reproduced and corrected two small existing defects: medication transactions now
 recheck principal expiry after locking, and analysis erasure clears owned encrypted
 replay bodies using the existing invalidation mechanism. No schema/grants changed.
 Additional regressions cover report reads after original image expiry, verified upload
 metadata removal and concurrent analysis erasure. See
 [Chunk 6 engineering audit](docs/PHASE_3B_CHUNK_6_AUDIT.md) for scope, findings and fresh
-validation. Historical validation counts below remain dated records. No staging,
-commit, push or Chunk 7 work is authorized before review and explicit commit approval.
+validation. Historical validation counts and authorization records below remain dated records.
 
 Fresh audit validation: **82 focused tests passed** and **334 full backend/database
 tests passed, 0 failed, 0 skipped** (301.43 seconds). Ruff, generated manual-client parity
@@ -18,7 +41,7 @@ databases; shared data fingerprint and migration 0005 baseline were unchanged. T
 run emitted 271 existing Alembic/Starlette deprecation warnings. No Flutter files changed
 or fresh frontend/device build claim was made. See the audit for commands and findings.
 
-Current authorization (2026-10-12): implement Phase 3B Chunk 6 only from cdadf34.
+Historical authorization (2026-10-12): implement Phase 3B Chunk 6 only from cdadf34.
 The backend-only synthetic report projection is implemented locally, uncommitted and
 validated. It adds strict report contracts, an explicitly injected GET
 and tests, without migrations, report persistence, providers, clinical facts or Flutter.

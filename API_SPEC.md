@@ -1,5 +1,20 @@
 # MedLM AI API specification
 
+## Chunk 7 client contract (2026-10-15)
+
+`contracts/synthetic-analysis-openapi.json` exports the already implemented injected
+upload/lifecycle/extraction/review/report routes. It does not enable them. Generate or
+check it with `scripts/export_contract.py --analysis [--check]`; normal and upload-only
+contracts retain their existing shapes. `scripts/generate_analysis_client.py [--check]`
+generates immutable Dart DTOs with structural validation. Client semantic guards also
+reject inconsistent review, observation, revision and report inputs before display.
+
+The Flutter harness uses existing authenticated endpoints and original idempotency
+keys/bodies. Ticketless upload replay may opt into status/completion recovery of the
+same immutable upload; it never resends content without a ticket or creates a new upload.
+Server completion still verifies stored content/hash/ownership and original expiry.
+There is no fixture-download, arbitrary-image, authentication-bypass or new domain route.
+
 ## Chunk 6 synthetic report projection (2026-10-12)
 
 Explicit test-harness injection alone enables authenticated GET

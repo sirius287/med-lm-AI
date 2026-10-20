@@ -9,6 +9,317 @@ class AppLocalizationsTe extends AppLocalizations {
   AppLocalizationsTe([String locale = 'te']) : super(locale);
 
   @override
+  String get analysisTitle => 'సింథటిక్ విశ్లేషణ కార్యస్థలం';
+
+  @override
+  String get analysisSyntheticNotice =>
+      'సింథటిక్ పరీక్ష కోసం మాత్రమే. ఈ నమూనాలు, పరిశీలనలు వైద్య సమాచారం లేదా ప్రామాణిక ఆధారాలు కావు.';
+
+  @override
+  String get analysisChooseFixture => 'నమోదైన పరీక్ష నమూనాను ఎంచుకోండి';
+
+  @override
+  String get analysisStart => 'పరీక్ష నమూనాను పంపండి';
+
+  @override
+  String get analysisNewFixture => 'మరో నమూనాను ఎంచుకోండి';
+
+  @override
+  String get analysisObservations => 'సేకరించిన అసలు పరిశీలనలు';
+
+  @override
+  String get analysisReview => 'సేకరించిన పాఠ్యాన్ని సమీక్షించండి';
+
+  @override
+  String get analysisReport => 'ఆధారాలతో పరిమితమైన నివేదిక';
+
+  @override
+  String get analysisHistory => 'మానవ సమీక్ష చరిత్ర';
+
+  @override
+  String get analysisReviewedText => 'సమీక్షించిన ప్రతిలేఖనం';
+
+  @override
+  String get analysisUnavailableInfo =>
+      'అందుబాటులో లేదు — ప్రామాణిక మూలాన్ని తనిఖీ చేయలేదు.';
+
+  @override
+  String get analysisUnverified =>
+      'వైద్యపరంగా ధృవీకరించలేదు. మానవ సమీక్ష ప్రతిలేఖనాన్ని మాత్రమే నిర్ధారిస్తుంది.';
+
+  @override
+  String get analysisNoObservedText => 'పాఠ్యం కనిపించలేదు';
+
+  @override
+  String get analysisUnreviewed => 'సమీక్షించలేదు';
+
+  @override
+  String get analysisConfirmed => 'ప్రతిలేఖనం నిర్ధారించబడింది';
+
+  @override
+  String get analysisCorrected => 'సవరించిన ప్రతిలేఖనం';
+
+  @override
+  String get analysisConfirmText => 'సమీక్షించిన పాఠ్యాన్ని నిర్ధారించండి';
+
+  @override
+  String get analysisCorrectText => 'సవరణలను పంపండి';
+
+  @override
+  String get analysisReject => 'ఈ సమీక్షను తిరస్కరించండి';
+
+  @override
+  String get analysisUnresolved => 'పరిష్కరించలేదు';
+
+  @override
+  String get analysisSaveUnresolved => 'అపరిష్కృత సమీక్షను సేవ్ చేయండి';
+
+  @override
+  String get analysisConfirmField => 'అసలు పరిశీలనను యథాతథంగా నిర్ధారించండి';
+
+  @override
+  String get analysisCorrection => 'సవరణ (పాఠ్యాన్ని యథాతథంగా ఉంచండి)';
+
+  @override
+  String get analysisClearValue => 'విలువను స్పష్టంగా ఖాళీ చేయండి';
+
+  @override
+  String get analysisOriginal => 'అసలు పాఠ్యం';
+
+  @override
+  String get analysisNormalized => 'సాధారణీకరించిన పరిశీలన';
+
+  @override
+  String get analysisAlternatives => 'విరుద్ధ ప్రత్యామ్నాయాలు';
+
+  @override
+  String get analysisUncalibrated =>
+      'ప్రమాణీకరించని పరిశీలన స్కోర్; అంగీకారానికి ఆధారం కాదు.';
+
+  @override
+  String get analysisLine => 'ప్రిస్క్రిప్షన్ పంక్తి';
+
+  @override
+  String get analysisDisposition => 'పంక్తి నిర్ణయం';
+
+  @override
+  String get analysisSelectDisposition => 'ప్రతి పంక్తికి నిర్ణయం ఎంచుకోండి';
+
+  @override
+  String get analysisIncluded => 'సమీక్షించిన పంక్తిని చేర్చండి';
+
+  @override
+  String get analysisExcluded => 'పంక్తిని మినహాయించండి';
+
+  @override
+  String get analysisDeadline => 'చిత్రం అసలు గడువు';
+
+  @override
+  String get analysisProcessing => 'ప్రాసెసింగ్ స్థితి';
+
+  @override
+  String get analysisAvailability => 'ఇన్‌పుట్ లభ్యత';
+
+  @override
+  String get analysisLoading => 'సింథటిక్ అభ్యర్థనపై పని జరుగుతోంది…';
+
+  @override
+  String get analysisCancel => 'విశ్లేషణను రద్దు చేయండి';
+
+  @override
+  String get analysisNewAttempt => 'కొత్త సేకరణ ప్రయత్నాన్ని ప్రారంభించండి';
+
+  @override
+  String get analysisBack => 'పరిశీలనలకు తిరిగి వెళ్లండి';
+
+  @override
+  String get analysisExpiredNotice =>
+      'చిత్రం గడువు ముగిసింది. సేవ్ చేసిన పాఠ్యం చదవవచ్చు; కొత్త ప్రాసెసింగ్, సమీక్ష అందుబాటులో లేవు.';
+
+  @override
+  String get analysisCancelledNotice =>
+      'విశ్లేషణ రద్దయింది. చిత్రం తొలగింపు వరుసలో ఉంది; వాస్తవ తొలగింపు నిర్ధారించబడలేదు.';
+
+  @override
+  String get analysisImageUnavailable =>
+      'సమీక్ష చిత్రం అందుబాటులో లేదు. విశ్లేషణను చెరిపే వరకు సేవ్ చేసిన పాఠ్యానికి వేరే నిల్వ విధానం ఉంది.';
+
+  @override
+  String get analysisFinalNotice =>
+      'సమీక్ష తుది నిర్ణయం. మార్చడం లేదా తిరిగి తెరవడం సాధ్యం కాదు. ప్రస్తుత రక్షణలతో చిత్రం తొలగించబడుతుంది.';
+
+  @override
+  String get analysisSavedText =>
+      'సేవ్ చేసిన ప్రతిలేఖనం సున్నితమైనది; అది వైద్య ధృవీకరణ కాదు.';
+
+  @override
+  String get analysisError =>
+      'సింథటిక్ అభ్యర్థన పూర్తికాలేదు. దీనివల్ల వైద్య ఫలితం సూచించబడదు.';
+
+  @override
+  String get analysisConflict =>
+      'సవరణ లేదా సెషన్‌కు చెందిన పని మారింది. కొనసాగించే ముందు రిఫ్రెష్ చేయండి.';
+
+  @override
+  String get analysisInvalidReview =>
+      'ప్రతి అవసరమైన ఫీల్డ్‌ను సమీక్షించి ప్రతి పంక్తికి నిర్ణయం ఎంచుకోండి. యథాతథ పాఠ్యాన్ని నిర్ధారించండి లేదా సరైన సవరణ ఇవ్వండి.';
+
+  @override
+  String get analysisUncertain =>
+      'అభ్యర్థన ఫలితం అనిశ్చితం. సవరణ నిలిపివేయబడింది; అదే అభ్యర్థనను మళ్లీ పంపండి లేదా సేవ్ చేసిన స్థితిని రిఫ్రెష్ చేయండి.';
+
+  @override
+  String get analysisRetrySame => 'అదే అభ్యర్థనను మళ్లీ పంపండి';
+
+  @override
+  String get analysisProviderDisabled =>
+      'సేకరణ ప్రొవైడర్ నిలిపివేయబడింది. లైవ్ ప్రొవైడర్ ఉపయోగించబడదు.';
+
+  @override
+  String get analysisFixtureLiteral => 'యథాతథ పాఠ్య పరీక్ష';
+
+  @override
+  String get analysisFixtureEmpty => 'ఖాళీ పరీక్ష';
+
+  @override
+  String get analysisFixtureAmbiguous => 'అస్పష్ట పరీక్ష';
+
+  @override
+  String get analysisStrip => 'సింథటిక్ స్ట్రిప్';
+
+  @override
+  String get analysisBottle => 'సింథటిక్ సీసా';
+
+  @override
+  String get analysisTube => 'సింథటిక్ ట్యూబ్';
+
+  @override
+  String get analysisBox => 'సింథటిక్ పెట్టె';
+
+  @override
+  String get analysisPrescription => 'సింథటిక్ ప్రిస్క్రిప్షన్';
+
+  @override
+  String get analysisQueued => 'వరుసలో ఉంది';
+
+  @override
+  String get analysisValidating => 'ఇన్‌పుట్ తనిఖీ జరుగుతోంది';
+
+  @override
+  String get analysisExtracting => 'పరీక్ష పరిశీలనలు సేకరిస్తోంది';
+
+  @override
+  String get analysisRetrieving => 'పొందుతోంది';
+
+  @override
+  String get analysisValidatingOutput => 'అవుట్‌పుట్ తనిఖీ జరుగుతోంది';
+
+  @override
+  String get analysisCompleted => 'ప్రాసెసింగ్ పూర్తయింది';
+
+  @override
+  String get analysisFailed => 'ప్రాసెసింగ్ విఫలమైంది';
+
+  @override
+  String get analysisNeedsInput => 'ఇన్‌పుట్ అవసరం';
+
+  @override
+  String get analysisAvailable => 'అందుబాటులో ఉంది';
+
+  @override
+  String get analysisExpired => 'గడువు ముగిసింది';
+
+  @override
+  String get analysisGenericName => 'జెనెరిక్ పేరు';
+
+  @override
+  String get analysisActiveIngredients => 'క్రియాశీల పదార్థాలు';
+
+  @override
+  String get analysisStrength => 'బలం';
+
+  @override
+  String get analysisDosageForm => 'ఔషధ రూపం';
+
+  @override
+  String get analysisManufacturer => 'తయారీదారు';
+
+  @override
+  String get analysisCommonUses => 'సాధారణ ఉపయోగాలు';
+
+  @override
+  String get analysisMechanism => 'సాధారణ చర్య విధానం';
+
+  @override
+  String get analysisCommonSideEffects => 'సాధారణ దుష్ప్రభావాలు';
+
+  @override
+  String get analysisSeriousEffects => 'తీవ్రమైన ప్రతికూల ప్రభావాలు';
+
+  @override
+  String get analysisWarnings => 'హెచ్చరికలు';
+
+  @override
+  String get analysisContraindications => 'వాడకూడని పరిస్థితులు';
+
+  @override
+  String get analysisPrecautions => 'జాగ్రత్తలు';
+
+  @override
+  String get analysisDrugInteractions => 'మందుల పరస్పర చర్యలు';
+
+  @override
+  String get analysisFoodInteractions => 'ఆహార/పానీయ పరస్పర చర్యలు';
+
+  @override
+  String get analysisPregnancy => 'గర్భధారణ అంశాలు';
+
+  @override
+  String get analysisBreastfeeding => 'తల్లిపాలు ఇవ్వడంపై అంశాలు';
+
+  @override
+  String get analysisPediatric => 'పిల్లల సంబంధిత అంశాలు';
+
+  @override
+  String get analysisOlderAdult => 'వృద్ధుల సంబంధిత అంశాలు';
+
+  @override
+  String get analysisKidney => 'మూత్రపిండాల అంశాలు';
+
+  @override
+  String get analysisLiver => 'కాలేయ అంశాలు';
+
+  @override
+  String get analysisStorage => 'నిల్వ';
+
+  @override
+  String get analysisPrescriptionStatus => 'ప్రిస్క్రిప్షన్/ఓటీసీ స్థితి';
+
+  @override
+  String get analysisOther => 'ఇతర ముఖ్య సమాచారం';
+
+  @override
+  String get analysisDose => 'మోతాదు';
+
+  @override
+  String get analysisFrequency => 'ఎంత తరచుగా';
+
+  @override
+  String get analysisRoute => 'ఇచ్చే మార్గం';
+
+  @override
+  String get analysisDuration => 'వ్యవధి';
+
+  @override
+  String get analysisTime => 'సమయం';
+
+  @override
+  String get analysisFoodInstruction => 'ఆహార సూచనలు';
+
+  @override
+  String get analysisSpecialInstruction => 'ప్రత్యేక సూచనలు';
+
+  @override
   String get appTitle => 'MedLM AI';
 
   @override

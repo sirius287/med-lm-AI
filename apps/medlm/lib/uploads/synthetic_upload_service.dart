@@ -36,6 +36,7 @@ class SyntheticUploadService {
     required String requestKey,
     String documentKind = 'box',
     bool retainForReview = false,
+    bool resumeCompletion = false,
   }) async {
     if (_pending != null) throw const ApiException('upload_in_progress');
     if (fixture.isEmpty ||
@@ -64,7 +65,26 @@ class SyntheticUploadService {
       _current(generation);
       final path = _path(intent['upload_id'] as String);
       final ticket = intent['ticket'] as String?;
-      if (ticket == null) throw const ApiException('ticket_unavailable');
+      if (ticket == null) {
+        if (!resumeCompletion) throw const ApiException('ticket_unavailable');
+        // An intent replay never reissues a single-use ticket. Recover only
+        // existing accepted/written content; the server revalidates its hash.
+        final current = await status(intent['upload_id'] as String);
+        _current(generation);
+        if (current['status'] == 'accepted') return current;
+        final result = await api.request(
+          'POST',
+          '$path/complete',
+          authenticated: true,
+          headers: {
+            'Idempotency-Key': requestKey,
+            'If-Match': '"${current['version']}"',
+          },
+          body: {'checksum_sha256': checksum},
+        );
+        _current(generation);
+        return result;
+      }
       // Construct the same-origin path; never follow a server-supplied upload URL.
       await api.request(
         'PUT',

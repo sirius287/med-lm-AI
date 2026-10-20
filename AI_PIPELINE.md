@@ -1,5 +1,12 @@
 # MedLM AI extraction and verification pipeline
 
+> Chunk 7 (2026-10-15): an explicitly injected Flutter test workflow selects only
+> generated registered fixtures and exercises the existing deterministic extraction,
+> mandatory review and report boundaries. UI labels support English/Hindi/Telugu;
+> observed/corrected text is neither translated nor inferred. All 24 medical-information
+> fields remain unavailable/null, with no authoritative source checked. No AI/provider
+> execution, clinical verification, prescription conversion or medication transfer is added.
+
 > Chunk 6 (2026-10-12): backend-only on-demand synthetic report projection is implemented
 > behind explicit test injection. No evidence retrieval, report persistence or provider
 > execution is added. Original observations, ambiguity, user corrections/dispositions and

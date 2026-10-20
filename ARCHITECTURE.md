@@ -1,5 +1,18 @@
 # MedLM AI architecture
 
+> Chunk 7 (2026-10-15): a separately mounted `SyntheticAnalysisHarness` reuses Flutter
+> authentication, Riverpod owner disposal, API transport, themes and localization.
+> Its service must be explicitly injected; main.dart, normal routing and backend
+> route gates are unchanged. Automated harness validation is distinct from a runnable
+> Android/Web backend demo, which still needs separately approved bootstrapping.
+
+The generated synthetic analysis contract and nine bundled labelled PNG fixtures are
+derived from server schemas/registered fixture definitions. Client metadata describes
+input; only server allowlisting, dual hashes, ownership and fencing authorize processing.
+Memory-only controllers preserve immutable observations, literal review/corrections,
+line dispositions and unavailable medical fields separately. No medication transfer,
+provider execution, source lookup, new schema/grants or production capability is added.
+
 > Chunk 6 (2026-10-12): `medlm_domain.report` provides strict report contracts and pure
 > assembly; `medlm_api.analysis_report.SyntheticReports` projects an owner-locked current
 > completed extraction and immutable review history. Only explicit test-harness injection

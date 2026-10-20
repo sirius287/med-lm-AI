@@ -9,6 +9,317 @@ class AppLocalizationsHi extends AppLocalizations {
   AppLocalizationsHi([String locale = 'hi']) : super(locale);
 
   @override
+  String get analysisTitle => 'सिंथेटिक विश्लेषण कार्यक्षेत्र';
+
+  @override
+  String get analysisSyntheticNotice =>
+      'केवल सिंथेटिक परीक्षण। ये नमूने और अवलोकन चिकित्सा जानकारी या प्रामाणिक प्रमाण नहीं हैं।';
+
+  @override
+  String get analysisChooseFixture => 'पंजीकृत परीक्षण नमूना चुनें';
+
+  @override
+  String get analysisStart => 'परीक्षण नमूना भेजें';
+
+  @override
+  String get analysisNewFixture => 'दूसरा नमूना चुनें';
+
+  @override
+  String get analysisObservations => 'निकाले गए मूल अवलोकन';
+
+  @override
+  String get analysisReview => 'निकाले गए पाठ की समीक्षा करें';
+
+  @override
+  String get analysisReport => 'प्रमाण पर आधारित रिपोर्ट';
+
+  @override
+  String get analysisHistory => 'मानव समीक्षा इतिहास';
+
+  @override
+  String get analysisReviewedText => 'समीक्षित प्रतिलेखन';
+
+  @override
+  String get analysisUnavailableInfo =>
+      'अनुपलब्ध — कोई प्रामाणिक स्रोत नहीं जाँचा गया।';
+
+  @override
+  String get analysisUnverified =>
+      'चिकित्सकीय रूप से असत्यापित। मानव समीक्षा केवल प्रतिलेखन की पुष्टि करती है।';
+
+  @override
+  String get analysisNoObservedText => 'कोई पाठ नहीं मिला';
+
+  @override
+  String get analysisUnreviewed => 'समीक्षा नहीं हुई';
+
+  @override
+  String get analysisConfirmed => 'प्रतिलेखन की पुष्टि हुई';
+
+  @override
+  String get analysisCorrected => 'सुधारा गया प्रतिलेखन';
+
+  @override
+  String get analysisConfirmText => 'समीक्षित पाठ की पुष्टि करें';
+
+  @override
+  String get analysisCorrectText => 'सुधार भेजें';
+
+  @override
+  String get analysisReject => 'इस समीक्षा को अस्वीकार करें';
+
+  @override
+  String get analysisUnresolved => 'अनसुलझा';
+
+  @override
+  String get analysisSaveUnresolved => 'अनसुलझी समीक्षा सहेजें';
+
+  @override
+  String get analysisConfirmField => 'मूल अवलोकन की हूबहू पुष्टि करें';
+
+  @override
+  String get analysisCorrection => 'सुधार (पाठ हूबहू रखें)';
+
+  @override
+  String get analysisClearValue => 'मान को स्पष्ट रूप से खाली करें';
+
+  @override
+  String get analysisOriginal => 'मूल पाठ';
+
+  @override
+  String get analysisNormalized => 'सामान्यीकृत अवलोकन';
+
+  @override
+  String get analysisAlternatives => 'विरोधी विकल्प';
+
+  @override
+  String get analysisUncalibrated =>
+      'अंशांकन रहित अवलोकन स्कोर; स्वीकृति का आधार नहीं।';
+
+  @override
+  String get analysisLine => 'पर्चे की पंक्ति';
+
+  @override
+  String get analysisDisposition => 'पंक्ति का निर्णय';
+
+  @override
+  String get analysisSelectDisposition => 'हर पंक्ति के लिए निर्णय चुनें';
+
+  @override
+  String get analysisIncluded => 'समीक्षित पंक्ति शामिल करें';
+
+  @override
+  String get analysisExcluded => 'पंक्ति बाहर रखें';
+
+  @override
+  String get analysisDeadline => 'छवि की मूल समाप्ति';
+
+  @override
+  String get analysisProcessing => 'प्रसंस्करण स्थिति';
+
+  @override
+  String get analysisAvailability => 'इनपुट की उपलब्धता';
+
+  @override
+  String get analysisLoading => 'सिंथेटिक अनुरोध पर काम हो रहा है…';
+
+  @override
+  String get analysisCancel => 'विश्लेषण रद्द करें';
+
+  @override
+  String get analysisNewAttempt => 'नया निष्कर्षण प्रयास शुरू करें';
+
+  @override
+  String get analysisBack => 'अवलोकनों पर लौटें';
+
+  @override
+  String get analysisExpiredNotice =>
+      'छवि की अवधि समाप्त हुई। सहेजा पाठ पढ़ा जा सकता है; नया प्रसंस्करण और समीक्षा उपलब्ध नहीं है।';
+
+  @override
+  String get analysisCancelledNotice =>
+      'विश्लेषण रद्द हुआ। छवि हटाने का काम कतार में है; वास्तविक विलोपन की पुष्टि नहीं हुई है।';
+
+  @override
+  String get analysisImageUnavailable =>
+      'समीक्षा छवि उपलब्ध नहीं है। विश्लेषण मिटाने तक सहेजे पाठ का अलग प्रतिधारण है।';
+
+  @override
+  String get analysisFinalNotice =>
+      'समीक्षा अंतिम है और बदली या दोबारा खोली नहीं जा सकती। छवि मौजूदा सुरक्षा उपायों से हटेगी।';
+
+  @override
+  String get analysisSavedText =>
+      'सहेजा प्रतिलेखन संवेदनशील है और चिकित्सा सत्यापन नहीं है।';
+
+  @override
+  String get analysisError =>
+      'सिंथेटिक अनुरोध पूरा नहीं हुआ। इससे किसी चिकित्सा परिणाम का संकेत नहीं मिलता।';
+
+  @override
+  String get analysisConflict =>
+      'संशोधन या सत्र से जुड़ा कार्य बदल गया। आगे बढ़ने से पहले ताज़ा करें।';
+
+  @override
+  String get analysisInvalidReview =>
+      'हर आवश्यक फ़ील्ड की समीक्षा और हर पंक्ति का निर्णय करें। हूबहू पाठ की पुष्टि करें या वैध सुधार दें।';
+
+  @override
+  String get analysisUncertain =>
+      'अनुरोध का परिणाम अनिश्चित है। संपादन बंद है; वही अनुरोध फिर भेजें या सहेजी स्थिति ताज़ा करें।';
+
+  @override
+  String get analysisRetrySame => 'वही अनुरोध फिर भेजें';
+
+  @override
+  String get analysisProviderDisabled =>
+      'निष्कर्षण प्रदाता बंद है। कोई लाइव प्रदाता इस्तेमाल नहीं होगा।';
+
+  @override
+  String get analysisFixtureLiteral => 'हूबहू पाठ परीक्षण';
+
+  @override
+  String get analysisFixtureEmpty => 'खाली परीक्षण';
+
+  @override
+  String get analysisFixtureAmbiguous => 'अस्पष्ट परीक्षण';
+
+  @override
+  String get analysisStrip => 'सिंथेटिक स्ट्रिप';
+
+  @override
+  String get analysisBottle => 'सिंथेटिक बोतल';
+
+  @override
+  String get analysisTube => 'सिंथेटिक ट्यूब';
+
+  @override
+  String get analysisBox => 'सिंथेटिक डिब्बा';
+
+  @override
+  String get analysisPrescription => 'सिंथेटिक पर्चा';
+
+  @override
+  String get analysisQueued => 'कतार में';
+
+  @override
+  String get analysisValidating => 'इनपुट जाँचा जा रहा है';
+
+  @override
+  String get analysisExtracting => 'परीक्षण अवलोकन निकाले जा रहे हैं';
+
+  @override
+  String get analysisRetrieving => 'प्राप्त किया जा रहा है';
+
+  @override
+  String get analysisValidatingOutput => 'आउटपुट जाँचा जा रहा है';
+
+  @override
+  String get analysisCompleted => 'प्रसंस्करण पूरा हुआ';
+
+  @override
+  String get analysisFailed => 'प्रसंस्करण विफल हुआ';
+
+  @override
+  String get analysisNeedsInput => 'इनपुट आवश्यक है';
+
+  @override
+  String get analysisAvailable => 'उपलब्ध';
+
+  @override
+  String get analysisExpired => 'अवधि समाप्त';
+
+  @override
+  String get analysisGenericName => 'जेनेरिक नाम';
+
+  @override
+  String get analysisActiveIngredients => 'सक्रिय घटक';
+
+  @override
+  String get analysisStrength => 'स्ट्रेंथ';
+
+  @override
+  String get analysisDosageForm => 'दवा का रूप';
+
+  @override
+  String get analysisManufacturer => 'निर्माता';
+
+  @override
+  String get analysisCommonUses => 'सामान्य उपयोग';
+
+  @override
+  String get analysisMechanism => 'सामान्य कार्यप्रणाली';
+
+  @override
+  String get analysisCommonSideEffects => 'सामान्य दुष्प्रभाव';
+
+  @override
+  String get analysisSeriousEffects => 'गंभीर प्रतिकूल प्रभाव';
+
+  @override
+  String get analysisWarnings => 'चेतावनियाँ';
+
+  @override
+  String get analysisContraindications => 'उपयोग निषेध';
+
+  @override
+  String get analysisPrecautions => 'सावधानियाँ';
+
+  @override
+  String get analysisDrugInteractions => 'दवाओं के बीच अंतःक्रियाएँ';
+
+  @override
+  String get analysisFoodInteractions => 'खाद्य/पेय अंतःक्रियाएँ';
+
+  @override
+  String get analysisPregnancy => 'गर्भावस्था संबंधी जानकारी';
+
+  @override
+  String get analysisBreastfeeding => 'स्तनपान संबंधी जानकारी';
+
+  @override
+  String get analysisPediatric => 'बच्चों संबंधी जानकारी';
+
+  @override
+  String get analysisOlderAdult => 'वृद्धों संबंधी जानकारी';
+
+  @override
+  String get analysisKidney => 'गुर्दे संबंधी जानकारी';
+
+  @override
+  String get analysisLiver => 'यकृत संबंधी जानकारी';
+
+  @override
+  String get analysisStorage => 'भंडारण';
+
+  @override
+  String get analysisPrescriptionStatus => 'पर्चे/ओटीसी की स्थिति';
+
+  @override
+  String get analysisOther => 'अन्य महत्वपूर्ण जानकारी';
+
+  @override
+  String get analysisDose => 'खुराक';
+
+  @override
+  String get analysisFrequency => 'आवृत्ति';
+
+  @override
+  String get analysisRoute => 'देने का मार्ग';
+
+  @override
+  String get analysisDuration => 'अवधि';
+
+  @override
+  String get analysisTime => 'समय';
+
+  @override
+  String get analysisFoodInstruction => 'भोजन संबंधी निर्देश';
+
+  @override
+  String get analysisSpecialInstruction => 'विशेष निर्देश';
+
+  @override
   String get appTitle => 'MedLM AI';
 
   @override

@@ -2,7 +2,11 @@
 
 > Chunk 7 (2026-10-15): synthetic Flutter UI requires explicit service injection and
 > the existing authenticated account scope; normal routes and authentication remain
-> unchanged. Owner/session changes dispose memory state and invalidate late responses.
+> unchanged. During revalidation for the same authenticated owner, sensitive workflow
+> UI is temporarily hidden/disabled while memory-only workflow state is preserved.
+> A successful same-owner check retains that state. Logout, session expiry, failed
+> authentication or owner change clears owner-scoped workflow state and fences late
+> responses. Pre-revalidation in-flight responses are also fenced.
 > No user image, transcription, correction or report is persisted on the client
 > by this workflow; existing bounded server storage/text retention remains in effect.
 
