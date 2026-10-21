@@ -5,7 +5,7 @@ from uuid import uuid4
 import httpx
 import jwt
 import pytest
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from fastapi.testclient import TestClient
 from medlm_api.auth import SupabaseGateway
 from medlm_api.config import Settings
@@ -79,8 +79,13 @@ def test_auth_missing_config_origin_and_rate_limit(settings):
         assert "access-control-allow-origin" not in preflight.headers
 
 
-def test_provider_verifies_signed_token_and_rejects_wrong_audience():
-    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+@pytest.mark.parametrize("algorithm", ["RS256", "ES256"])
+def test_provider_verifies_signed_token_and_rejects_wrong_audience(algorithm):
+    key = (
+        rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        if algorithm == "RS256"
+        else ec.generate_private_key(ec.SECP256R1())
+    )
     user, session = uuid4(), uuid4()
     settings = Settings(
         _env_file=None,
@@ -108,7 +113,7 @@ def test_provider_verifies_signed_token_and_rejects_wrong_audience():
         "iss": "https://auth.example.org/auth/v1",
         "exp": datetime.now(UTC) + timedelta(minutes=5),
     }
-    token = jwt.encode(claims, key, algorithm="RS256")
+    token = jwt.encode(claims, key, algorithm=algorithm)
     assert provider.verify(token).user_id == user
     for changed in (
         {"aud": "another-app"},
@@ -116,10 +121,14 @@ def test_provider_verifies_signed_token_and_rejects_wrong_audience():
         {"iss": "https://attacker.invalid"},
     ):
         with pytest.raises(AppError) as error:
-            provider.verify(jwt.encode({**claims, **changed}, key, algorithm="RS256"))
+            provider.verify(jwt.encode({**claims, **changed}, key, algorithm=algorithm))
         assert error.value.status == 401
     with pytest.raises(AppError):
         provider.verify(token + "tampered")
+    with pytest.raises(AppError):
+        provider.verify(
+            jwt.encode(claims, "synthetic-hmac-key-must-not-be-accepted", algorithm="HS256")
+        )
     provider.close()
 
 
