@@ -2,6 +2,16 @@
 
 ## Project and current phase
 
+Release checkpoint (2026-10-22): b8b28b0 includes the completed synthetic Phase 3B
+engineering workflow. The owner authorized safe, tested release preparation:
+configuration/setup safeguards, isolated tests, security fixes, CI, documentation
+and deployment preparation. Preserve the existing clinical/synthetic boundaries.
+Local coherent commits are authorized for this effort after validation; publishing
+still requires verified destination/access, and deployment/external or shared-data
+changes require the relevant explicit approval. No clinical capability is enabled.
+See docs/RELEASE_CHECKLIST.md. Earlier dated scope paragraphs are historical where
+superseded by the current user request.
+
 Current authorization (2026-10-06): Phase 3A is committed at f064621. Phase 3B's seven synthetic-only boundaries are approved; implement Chunk 1 contracts/state machine/docs/tests only under docs/adr/0007-phase-3b-synthetic-analysis.md. No migrations, API routes, Flutter UI, credentials or provider calls. No staging/commit is authorized. Earlier scope paragraphs are historical where superseded.
 
 MedLM AI is an India-first, five-platform medication information and management application. Read ARCHITECTURE.md, REQUIREMENTS.md, API_SPEC.md, DATABASE_SCHEMA.md, SECURITY.md, AI_PIPELINE.md and DEVELOPMENT_PLAN.md before relevant changes. These describe a proposed design, not implemented features.

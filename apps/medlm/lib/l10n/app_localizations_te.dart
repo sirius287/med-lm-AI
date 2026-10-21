@@ -329,15 +329,15 @@ class AppLocalizationsTe extends AppLocalizations {
   String get settings => 'సెట్టింగ్‌లు';
 
   @override
-  String get welcome => 'మీ మందుల సమాచారం, ఒకే చోట.';
+  String get welcome => 'మీ మందుల నమోదు, ఒకే చోట.';
 
   @override
   String get intro =>
-      'మందుల సమాచారం మరియు మందులు తీసుకునే రిమైండర్‌ల కోసం ఒక సరళమైన వేదిక.';
+      'మీరు నమోదు చేసిన మందులు, షెడ్యూల్‌లు మరియు మోతాదుల చరిత్రను చూడటానికి సైన్ ఇన్ చేయండి.';
 
   @override
   String get comingSoon =>
-      'మందులకు సంబంధించిన సదుపాయాలు తదుపరి నవీకరణలో వస్తాయి.';
+      'ఈ ప్రివ్యూలో AI విశ్లేషణ, వైద్య చిత్రాల అప్‌లోడ్ మరియు నోటిఫికేషన్‌ల పంపిణీ అందుబాటులో లేవు.';
 
   @override
   String get theme => 'రూపం';

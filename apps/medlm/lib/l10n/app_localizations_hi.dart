@@ -329,14 +329,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settings => 'सेटिंग्स';
 
   @override
-  String get welcome => 'आपकी दवा की जानकारी, एक ही जगह।';
+  String get welcome => 'आपकी दवाओं का रिकॉर्ड, एक ही जगह।';
 
   @override
   String get intro =>
-      'दवा की जानकारी और दवा लेने के रिमाइंडर के लिए एक सरल स्थान।';
+      'खुद दर्ज की गई दवाओं, समय-सारणी और खुराक के इतिहास का रिकॉर्ड रखने के लिए साइन इन करें।';
 
   @override
-  String get comingSoon => 'दवा से जुड़ी सुविधाएँ अगले अपडेट में आएँगी।';
+  String get comingSoon =>
+      'इस पूर्वावलोकन में AI विश्लेषण, चिकित्सा छवियाँ अपलोड करना और सूचनाएँ भेजना उपलब्ध नहीं हैं।';
 
   @override
   String get theme => 'दिखावट';

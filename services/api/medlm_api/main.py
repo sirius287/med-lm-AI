@@ -22,6 +22,7 @@ from medlm_api.auth_dependencies import (
 from medlm_api.auth_rate_limit import AuthRateLimiter
 from medlm_api.config import Settings
 from medlm_api.database import Database
+from medlm_api.diagnostics import log_configuration
 from medlm_api.errors import AppError
 
 logger = logging.getLogger("medlm")
@@ -80,6 +81,7 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app):
+        log_configuration(settings, logger)
         yield
         db.close()
         provider.close()
@@ -92,9 +94,14 @@ def create_app(
         allow_origins=settings.cors_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PATCH", "DELETE"] + (["PUT"] if synthetic_uploads else []),
-        allow_headers=["Content-Type", "Authorization", "X-CSRF-Token", "Idempotency-Key", "If-Match"] + (
-            ["X-Upload-Ticket"] if synthetic_uploads else []
-        ),
+        allow_headers=[
+            "Content-Type",
+            "Authorization",
+            "X-CSRF-Token",
+            "Idempotency-Key",
+            "If-Match",
+        ]
+        + (["X-Upload-Ticket"] if synthetic_uploads else []),
         expose_headers=["ETag"],
     )
 

@@ -715,19 +715,19 @@ abstract class AppLocalizations {
   /// No description provided for @welcome.
   ///
   /// In en, this message translates to:
-  /// **'Your medicine information, in one place.'**
+  /// **'Your medication log, in one place.'**
   String get welcome;
 
   /// No description provided for @intro.
   ///
   /// In en, this message translates to:
-  /// **'A thoughtful space for medicine information and medication reminders.'**
+  /// **'Sign in to track manually entered medications, schedules and dose history.'**
   String get intro;
 
   /// No description provided for @comingSoon.
   ///
   /// In en, this message translates to:
-  /// **'Medicine tools are coming in a later update.'**
+  /// **'AI analysis, medical-image uploads and notification delivery are unavailable in this preview.'**
   String get comingSoon;
 
   /// No description provided for @theme.

@@ -7,7 +7,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="MEDLM_", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_prefix="MEDLM_",
+        env_file=".env",
+        extra="ignore",
+        env_ignore_empty=True,
+        hide_input_in_errors=True,
+    )
     environment: Literal["development", "test", "production"] = "development"
     version: str = "0.1.0"
     api_prefix: str = "/api/v1"
@@ -63,10 +69,13 @@ class Settings(BaseSettings):
                     self.supabase_url,
                     self.supabase_publishable_key,
                     self.session_encryption_key,
+                    self.medication_encryption_key,
                     self.auth_rate_limit_key,
                 )
             ):
                 raise ValueError("Production authentication configuration is required")
+            if self.session_encryption_key == self.medication_encryption_key:
+                raise ValueError("Production session and medication encryption keys must differ")
         if self.supabase_url and not self.supabase_url.startswith("https://"):
             if self.environment == "production":
                 raise ValueError("Production Supabase URL must use HTTPS")

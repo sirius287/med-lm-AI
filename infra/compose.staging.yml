@@ -1,0 +1,40 @@
+# PREPARATION ONLY. No database/container is provisioned by repository scripts.
+# Read docs/DEPLOYMENT.md; do not expose the API port or use development .env.
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infra/api.Dockerfile
+    environment:
+      MEDLM_ENVIRONMENT: production
+      MEDLM_COOKIE_SECURE: 'true'
+      MEDLM_DATABASE_URL: ${MEDLM_DATABASE_URL:?Set restricted staging runtime URL privately}
+      MEDLM_SUPABASE_URL: ${MEDLM_SUPABASE_URL:?Set staging Auth URL}
+      MEDLM_SUPABASE_PUBLISHABLE_KEY: ${MEDLM_SUPABASE_PUBLISHABLE_KEY:?Set publishable key}
+      MEDLM_SESSION_ENCRYPTION_KEY: ${MEDLM_SESSION_ENCRYPTION_KEY:?Set stable staging key}
+      MEDLM_MEDICATION_ENCRYPTION_KEY: ${MEDLM_MEDICATION_ENCRYPTION_KEY:?Set distinct staging key}
+      MEDLM_AUTH_RATE_LIMIT_KEY: ${MEDLM_AUTH_RATE_LIMIT_KEY:?Set staging rate-limit key}
+      MEDLM_CORS_ORIGINS: ${MEDLM_CORS_ORIGINS:?Set exact HTTPS origin JSON}
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    networks: [private]
+  edge:
+    image: caddy:2.11.7-alpine
+    environment:
+      MEDLM_PUBLIC_HOST: ${MEDLM_PUBLIC_HOST:?Set verified staging hostname}
+    ports: ['80:80', '443:443', '443:443/udp']
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../apps/medlm/build/web:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [private]
+    restart: unless-stopped
+networks:
+  private:
+volumes:
+  caddy_data:
+  caddy_config:

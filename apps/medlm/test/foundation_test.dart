@@ -29,6 +29,18 @@ void main() {
       boot.complete();
       await tester.pumpAndSettle();
       expect(find.byType(HomeScreen), findsOneWidget);
+      expect(
+        find.text(
+          'Sign in to track manually entered medications, schedules and dose history.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'AI analysis, medical-image uploads and notification delivery are unavailable in this preview.',
+        ),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(const Key('settings')));
       await tester.pumpAndSettle();
       expect(find.byType(SettingsScreen), findsOneWidget);

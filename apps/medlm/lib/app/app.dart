@@ -173,6 +173,8 @@ class HomeScreen extends ConsumerWidget {
                     Text(s.intro, style: Theme.of(context).textTheme.bodyLarge),
                     const SizedBox(height: 24),
                     Text(s.onlineNotice),
+                    const SizedBox(height: 12),
+                    Text(s.comingSoon),
                     const SizedBox(height: 24),
                     FilledButton.icon(
                       key: const Key('account'),

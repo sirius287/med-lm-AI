@@ -1,5 +1,16 @@
 # MedLM AI security and privacy design
 
+Release preparation (2026-10-22): startup diagnostics expose only missing setting
+names, not values. Local setup refuses pre-existing MedLM resources/settings,
+separates migration owner/runtime, sends SCRAM verifiers in role DDL and generates
+distinct stable encryption/rate-limit keys privately. Production now requires the
+separate medication key and rejects reuse of the session key. Empty template
+placeholders are ignored; invalid setting values are hidden in validation messages.
+No clinical route, grant or provider is enabled by these changes. See
+SETUP_WINDOWS.md, docs/DEPLOYMENT.md and .github/SECURITY.md for setup, unresolved
+public-release gates and private disclosure. Never substitute an owner connection
+to hide a runtime privilege error.
+
 > Chunk 7 (2026-10-15): synthetic Flutter UI requires explicit service injection and
 > the existing authenticated account scope; normal routes and authentication remain
 > unchanged. During revalidation for the same authenticated owner, sensitive workflow

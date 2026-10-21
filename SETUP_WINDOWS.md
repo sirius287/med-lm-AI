@@ -1,200 +1,220 @@
-# Windows setup
+# Windows development setup
 
-Use PowerShell from the repository root. Do not install another SDK if one is already present. Installation of Flutter, Android Studio, PostgreSQL and Python is a separate machine setup step; these large tools are not downloaded by repository setup scripts.
+This is the authoritative local setup path. Run PowerShell from your checkout
+(normally $env:USERPROFILE\source\medlm-ai). Never share passwords,
+tokens, .env contents, cookies or health records in chat, logs or issues.
 
-## Inspect tools
+## Prerequisites
 
-```powershell
-git --version
+Use Flutter 3.41.7 / Dart 3.11.5, Python 3.13, uv 0.11.6 and PostgreSQL 18
+(validation host: 18.6). Android also needs Java, Android Studio and its SDK.
+iOS compilation/signing requires macOS/Xcode. Node, Docker and AI credentials
+are unnecessary. Scripts do not download large SDKs or reset passwords.
+
+For a new checkout only (skip cloning when you already have this repository):
+
+~~~powershell
+New-Item -ItemType Directory -Force "$env:USERPROFILE\source" | Out-Null
+git clone https://github.com/sirius287/med-lm-AI.git "$env:USERPROFILE\source\medlm-ai"
+~~~
+
+~~~powershell
+Set-Location "$env:USERPROFILE\source\medlm-ai"
+git status --short
 flutter --version
-dart --version
 flutter doctor -v
 uv --version
-uv python list --only-installed
-node --version
-npm.cmd --version
-& "$env:LOCALAPPDATA\Android\sdk\platform-tools\adb.exe" devices
-& "$env:LOCALAPPDATA\Android\sdk\emulator\emulator.exe" -list-avds
-```
-
-On this machine Flutter is `C:\src\flutter\bin`; Python 3.13 is discovered by uv even though `python`/`pip` are not on PATH. `npm.cmd` avoids the local PowerShell script execution-policy restriction. Flutter SDK bin must be on PATH in a new shell. Review Android licenses using `flutter doctor --android-licenses`; accepting them is your decision. Create an AVD using Android Studio Device Manager or attach a USB-debugging device.
-
-## Python dependencies and configuration
-
-```powershell
+& 'C:\Program Files\PostgreSQL\18\bin\postgres.exe' --version
 uv sync --frozen
-Copy-Item config/backend.env.template .env
-notepad .env
-```
+~~~
 
-Remove empty optional URL/key settings to start without integrations. For authentication, supply your Supabase project URL and publishable key, and generate a private session-encryption key locally:
+## Initialize only a NEW MedLM database
 
-```powershell
-uv run python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-```
+Use the existing PostgreSQL service on 127.0.0.1:5432. You need its administrator
+password privately. If unknown, stop and ask its administrator; do not guess/reset.
+The root .env must not exist and MEDLM_DATABASE_URL must not be set in this
+PowerShell process. Inspect configuration privately, never print it.
 
-Put the generated value in `.env`, never in Flutter or git. Production requires HTTPS, secure cookies and configured authentication. Keep migration-owner credentials separate from runtime credentials.
+~~~powershell
+uv run python scripts/dev.py init-db
+~~~
 
-## PostgreSQL
+The command privately prompts for the administrator password and two DIFFERENT
+new passwords of at least 16 characters: medlm_owner and medlm_runtime.
+Save the owner password in your password manager.
 
-Use an empty development database, not an existing application database. The following commands assume PostgreSQL 18 and an installed local server on port 5432; adjust port/path for your installation. PostgreSQL prompts for passwords. No passwords are embedded in these commands.
+Preflight verifies the exact address, port, database postgres and role postgres,
+then checks that medlm_dev and BOTH MedLM roles are absent. It refuses existing
+objects without changing them. It never connects to ninecgpa_dev, ninecgpa_test,
+urjavolt_db or another application's database.
 
-```powershell
-$pgBin = 'C:\Program Files\PostgreSQL\18\bin'
-& "$pgBin\createuser.exe" -h 127.0.0.1 -U postgres --pwprompt medlm_owner
-& "$pgBin\createdb.exe" -h 127.0.0.1 -U postgres -O medlm_owner medlm_dev
-& "$pgBin\createuser.exe" -h 127.0.0.1 -U postgres --pwprompt --no-superuser --no-createdb --no-createrole medlm_runtime
-$env:MEDLM_DATABASE_URL = Read-Host 'Owner SQLAlchemy URL: postgresql+psycopg://medlm_owner:URL_ENCODED_PASSWORD@127.0.0.1:5432/medlm_dev'
-uv run alembic upgrade head
-uv run alembic current
-& "$pgBin\psql.exe" -h 127.0.0.1 -U medlm_owner -d medlm_dev -v ON_ERROR_STOP=1 -f database/runtime_grants.sql
-Remove-Item Env:MEDLM_DATABASE_URL
-```
+After preflight, it creates only medlm_owner and medlm_runtime as LOGIN,
+NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOREPLICATION, NOBYPASSRLS. Role DDL
+contains SCRAM verifiers rather than plaintext passwords. It creates medlm_dev
+from template0, owned by medlm_owner, and verifies it is empty before migrations.
+It applies the existing Alembic chain to its actual head (0009_human_review),
+checks the head, and applies ONLY database/runtime_grants.sql as owner.
+Upload, analysis and maintenance grants are excluded.
 
-Set `.env` MEDLM_DATABASE_URL to the **medlm_runtime** connection before starting the API. The role must have NOBYPASSRLS and must not own tables. In Supabase, arrange equivalent private-schema grants with your database administrator; do not expose these schemas to anon/authenticated Data API roles. Do not run `scripts/test_role.sql` against production.
+The actual runtime login is checked for restricted attributes, manual table
+grants, lack of clinical table access, no table ownership and FORCE RLS.
+Only then is ignored root .env exclusively created, containing the runtime URL,
+two independent Fernet keys and an independent rate-limit key. Keys are generated
+locally without printing them. Existing keys are never overwritten or rotated.
+The owner URL/password is never saved in .env.
 
-## Run backend
+Database creation is not transactionally reversible with role creation. If a later
+step fails, resources remain intact: stop and inspect privately with your database
+administrator. Do not drop roles or overwrite keys to force a retry.
+This helper initializes a new database; it is not an upgrade/recovery command.
 
-For Chunk 2, apply migrations through `0003_auth_session_hardening`, then reapply `database/runtime_grants.sql` with the owner account. Upload grants remain absent. Set `MEDLM_AUTH_RATE_LIMIT_KEY` to an independent random secret (at least 32 characters) shared across API instances; production requires it. Optional `MEDLM_SESSION_DECRYPTION_KEYS` is a JSON array of up to three previous Fernet keys. Never retire old keys before sessions are rewritten or their original maximum lifetime elapses. See ADR 0003 for rotation and legacy-session limitations.
+Protect the checkout/.env with your Windows account's filesystem permissions.
+Do not use a shared writable checkout. Keep stable keys across restarts.
+Rotation needs the planned procedure in ADR 0003, not a startup key replacement.
 
-```powershell
+## Configure your DEVELOPMENT Supabase Auth project privately
+
+No script changes Supabase settings or creates accounts. In the correct project's
+dashboard:
+
+1. Verify project identity. Enable email/password Auth and KEEP email confirmation.
+   Configure working development email delivery and respect email/abuse limits.
+2. Set Auth Site URL to http://localhost:8080 and allow that exact confirmation
+   redirect. Do not use wildcard production redirects.
+3. Check JWT signing keys. This backend accepts ES256 or RS256 through JWKS and
+   validates issuer, audience, expiry, subject and session. HS256 is deliberately
+   unsupported. If your project uses HS256, plan Supabase's supported signing-key
+   migration; never weaken backend verification.
+4. Obtain the project HTTPS URL and current sb_publishable_ API key. Never use
+   a secret or service-role key.
+
+~~~powershell
+uv run python scripts/dev.py configure-auth
+uv run python scripts/dev.py check --database
+git check-ignore .env
+git status --short
+~~~
+
+Hidden local prompts append provider settings without changing encryption keys.
+Existing provider values are not overwritten; correct them privately if necessary.
+The command never contacts Supabase and does not prove live login works.
+
+Backend variables all use MEDLM_: DATABASE_URL, SUPABASE_URL,
+SUPABASE_PUBLISHABLE_KEY, SESSION_ENCRYPTION_KEY, AUTH_RATE_LIMIT_KEY are required
+for complete browser auth. MEDICATION_ENCRYPTION_KEY is also required for manual
+medication mutations. Full exact names appear in .env.example. Optional
+MEDLM_SESSION_DECRYPTION_KEYS is a JSON list of up to three fallback Fernet keys.
+The session lifetime cannot exceed 24 hours.
+
+Development retains its existing session-key fallback for throttling, but this
+procedure supplies an independent rate-limit key; production requires that key.
+Never share email-confirmation links: they may contain authentication tokens.
+After confirmation, navigate back to localhost:8080 yourself and sign in normally.
+
+Settings load .env relative to the repository working directory. Process variables
+override .env; empty placeholders are ignored. Never put an owner URL in runtime
+configuration. check is offline; check --database is read-only and refuses any
+target except the exact local medlm_runtime connection.
+
+## Start FastAPI (terminal A, repository root)
+
+~~~powershell
+Set-Location "$env:USERPROFILE\source\medlm-ai"
 $env:PYTHONPATH = 'services/api;packages/backend_domain'
 uv run uvicorn medlm_api.main:app --host 127.0.0.1 --port 8000 --no-access-log --no-proxy-headers
-```
+~~~
 
-In another terminal:
+Startup diagnostics list missing variable NAMES, not values. Health is liveness
+only; it can be 200 while login is unavailable. Do not expose this server publicly.
 
-```powershell
+~~~powershell
 Invoke-RestMethod http://127.0.0.1:8000/health
-Invoke-RestMethod http://127.0.0.1:8000/api/v1/health
-```
+curl.exe -i http://localhost:8000/api/v1/auth/session
+~~~
 
-Use `--host 0.0.0.0` only when intentionally allowing a physical device on a trusted local network, with appropriate Windows firewall rules. Never expose the development server publicly.
+Expected: health 200 JSON; signed-out session 401 authentication_required JSON.
+That 401 is correct when signed out.
 
-## Flutter web and Android
+## Start Flutter Web (terminal B)
 
-```powershell
-Set-Location apps/medlm
-flutter pub get
+~~~powershell
+Set-Location "$env:USERPROFILE\source\medlm-ai\apps\medlm"
+flutter pub get --enforce-lockfile
 flutter gen-l10n
 flutter run -d chrome --web-port 8080 --dart-define=API_BASE_URL=http://localhost:8000/api/v1
-```
+~~~
 
-For Android, start an emulator/device, then run in a separate terminal:
+Use localhost consistently for browser/cookie hosts, not a mixture with 127.0.0.1.
+Default CORS allows exact development origins; no wildcard is needed.
+Web does not need Supabase keys compiled into Flutter: it uses FastAPI.
 
-```powershell
-Set-Location apps/medlm
-flutter devices
-flutter run -d DEVICE_ID --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
-flutter build apk --debug
-```
+Open Account, register a test account you control, confirm email, then log in.
+Registration returns 202/check-email; successful login returns 200 and an HttpOnly
+opaque cookie. In DevTools Network verify calls reach localhost:8000/api/v1 and
+return JSON, not the Flutter HTML fallback. Never share the cookie or request body.
 
-Replace DEVICE_ID with `flutter devices` output; physical devices need your host's LAN address instead of 10.0.2.2. Native authentication additionally needs public `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_PUBLISHABLE_KEY=...`. Email/password screens and session-aware manual-management navigation are implemented; live provider validation remains separate. iOS must be built/tested on macOS with Xcode; generated files on Windows are not proof of an iOS build. Release signing is not configured.
+Use clearly labelled synthetic text to exercise medication add/list/edit/delete,
+schedule preview/activation, today's doses, taken/skipped, history and logout.
+This records user instructions; it does not verify their medical correctness.
 
-## Tests and contracts
+## Tests: use only disposable databases
 
-### Phase 3A manual management
-
-Migration `0005_manual_medications` is additive and follows 0004. Use the owner URL
-only for migrations, then apply `database/runtime_grants.sql` and restore the
-least-privilege runtime connection. Do not downgrade a database containing user data.
-
-From the repository root, with the existing local PostgreSQL setup:
-
-```powershell
-$env:MEDLM_DATABASE_URL = Read-Host 'Local database migration-owner SQLAlchemy URL'
-uv run alembic upgrade head
-# Use the matching local database and migration-owner connection for this command.
-& "$pgBin\psql.exe" -h 127.0.0.1 -U medlm_owner -d medlm_dev -v ON_ERROR_STOP=1 -f database/runtime_grants.sql
-$env:MEDLM_DATABASE_URL = Read-Host 'Local medlm_runtime SQLAlchemy URL'
-# Generate ONCE, keep private and persist securely for subsequent API restarts.
-# This key is separate from MEDLM_SESSION_ENCRYPTION_KEY.
-$env:MEDLM_MEDICATION_ENCRYPTION_KEY = uv run python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
+~~~powershell
+Set-Location "$env:USERPROFILE\source\medlm-ai"
+uv run python scripts/test_backend.py --pg-bin 'C:\Program Files\PostgreSQL\18\bin'
+uv run python scripts/test_backend.py --pg-bin 'C:\Program Files\PostgreSQL\18\bin' --setup-only
+uv run ruff check services packages database scripts
+uv run ruff format --check services packages database scripts
 $env:PYTHONPATH = 'services/api;packages/backend_domain'
-uv run uvicorn medlm_api.main:app --host 127.0.0.1 --port 8000
-```
-
-These commands do not provision Supabase. Actual app login needs the existing
-Supabase email/password configuration; missing credentials fail closed. Local automated
-tests inject synthetic authentication adapters and never enable a development login bypass.
-
-Use Login → Home/Today → Add medication. Enter literal instructions and explicit schedule
-inputs, save, review the preview and activate. Today/history use Asia/Kolkata day boundaries;
-each schedule retains its own entered timezone. No OS notifications or offline writes exist.
-“Include removed records” makes retained history records accessible for later explicit erasure.
-
-Reproduce the contract and client response bindings:
-
-```powershell
-$env:PYTHONPATH = 'services/api;packages/backend_domain'
-uv run python scripts/export_contract.py
-uv run python scripts/export_contract.py --synthetic
-uv run python scripts/generate_manual_client.py
+uv run python scripts/export_contract.py --check
+uv run python scripts/export_contract.py --synthetic --check
+uv run python scripts/export_contract.py --analysis --check
 uv run python scripts/generate_manual_client.py --check
-```
-
-For isolated local expiry validation, provision the separate role and apply its grants
-as an administrator (once, in a disposable test cluster):
-
-```powershell
-& "$pgBin\psql.exe" -h 127.0.0.1 -U medlm_owner -d medlm_test -v ON_ERROR_STOP=1 -c 'CREATE ROLE medlm_medication_maintenance NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS' -f database/medication_maintenance_grants.sql
-# Supply a local connection explicitly configured to SET ROLE medlm_medication_maintenance.
-$env:MEDLM_DATABASE_URL = Read-Host 'Local expiry-only maintenance SQLAlchemy URL'
-uv run python -m medlm_api.medication_maintenance
-Remove-Item Env:MEDLM_DATABASE_URL
-```
-
-Do not rerun CREATE ROLE if it already exists. No recurring scheduler is installed.
-Before deployment, separately provision a maintenance identity, schedule expiry cleanup,
-monitor lag, validate secret rotation, backups and restoration erasure. The command deletes
-only expired replay records and needs no decryption key. Active-database erasure does not
-claim deletion from backups. See ADR 0006 and the Phase 3A report for remaining gates.
-
-Chunk 3 synthetic upload tests, separate maintenance commands and restore safeguards are documented in [the local validation runbook](docs/runbooks/synthetic-upload-validation.md). These require migration 0004 in disposable databases and no live provider credentials. The normal app continues to reject uploads.
-
-Optional bounded session maintenance (root directory, runtime database URL, no provider call):
-
-```powershell
-$env:PYTHONPATH = 'services/api;packages/backend_domain'
-uv run python -m medlm_api.session_maintenance --batch-size 500
-```
-
-This removes expired browser sessions/throttle buckets only; provider-session revocation tombstones are retained. No automatic maintenance schedule is installed. Migration/auth integration tests also need `MEDLM_MIGRATION_TEST_ADMIN_URL` pointing to a disposable local cluster with database/role creation privileges; they create/drop their own randomly named databases. Never point this variable at production.
-
-From repository root:
-
-```powershell
-uv run pytest -q
-uv run ruff check services packages database
-$env:PYTHONPATH = 'services/api;packages/backend_domain'
-uv run python scripts/export_contract.py
-Push-Location apps/medlm
+uv run python scripts/generate_analysis_client.py --check
+uv run python scripts/generate_synthetic_catalog.py --check
+uv run python scripts/check_localization.py
+uv run python scripts/check_repository.py
+uv run --with PyYAML==6.0.3 python scripts/check_release_config.py
+git diff --check
+Set-Location apps/medlm
 flutter analyze
 flutter test
-flutter build web
-Pop-Location
-```
+flutter build web --release --dart-define=APP_ENV=production
+flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
+~~~
 
-For integration tests create a separate empty disposable database (`medlm_test`), migrate it with its owner URL, and run test-role/grant setup using an administrator. The test connection needs permission to SET ROLE medlm_runtime. Never use a database containing real users or medicines: tests assert clinical tables are empty.
+The backend runner creates a NEW SCRAM-protected cluster on a fresh loopback port
+under ignored .local/test-runs/UUID. Before writes it verifies the actual data
+directory, identity and empty database list. It ignores inherited application/test
+URLs. It never contacts your existing service/databases. Fixtures create/drop
+randomly named databases ONLY inside the disposable cluster. The runner stops
+only its cluster; ignored synthetic data/logs remain for local inspection.
+No shared medlm_test is needed. Never point tests at medlm_dev.
 
-```powershell
-$env:MEDLM_DATABASE_URL = Read-Host 'Disposable test database owner URL'
-uv run alembic upgrade head
-# Adjust these psql connection arguments to that same disposable database.
-& "$pgBin\psql.exe" -h 127.0.0.1 -U postgres -d medlm_test -v ON_ERROR_STOP=1 -f scripts/test_role.sql -f database/runtime_grants.sql
-& "$pgBin\psql.exe" -h 127.0.0.1 -U postgres -d medlm_test -v ON_ERROR_STOP=1 -c 'GRANT medlm_runtime TO medlm_owner'
-$env:MEDLM_TEST_DATABASE_URL = $env:MEDLM_DATABASE_URL
-uv run pytest -q
-Remove-Item Env:MEDLM_TEST_DATABASE_URL
-Remove-Item Env:MEDLM_DATABASE_URL
-```
+Without PostgreSQL binaries, plain uv run pytest -q with ALL database/test URLs
+unset will skip integration tests. Skips are not passing database validation.
 
-Without MEDLM_TEST_DATABASE_URL, database tests explicitly skip. Migration downgrade destroys the application schemas: use only a disposable database for round-trip validation. Do not run downgrade against live data.
+## Android and iOS
 
-## Chunk 4 account UI validation
+Use flutter doctor -v, accept SDK licenses yourself, and use Android Studio Device
+Manager or a USB-debugging device. 10.0.2.2 reaches the host from an Android emulator.
+Physical devices need a deliberately reachable host/firewall; do not expose the
+development API publicly. Native auth additionally needs public SUPABASE_URL and
+SUPABASE_PUBLISHABLE_KEY Dart defines for the same project. Backend secrets must
+never appear in Dart defines. iOS requires a separate macOS/Xcode validation.
 
-Home now opens Account for email/password registration, sign-in and sign-out. Home and Settings remain accessible without an account. Existing native Supabase configuration and Web backend cookie/CSRF configuration still apply; this chunk does not provision a provider or credentials. An unavailable provider/configuration displays an unavailable state. Registration instructions do not prove email delivery. Use synthetic accounts only during authorized integration validation.
+## Troubleshooting
 
-From `apps/medlm`, run `flutter test test/auth_controller_test.dart test/auth_ui_test.dart` for the new controller/UI checks. The full `flutter test` suite also retains the previous authentication and synthetic upload adapter tests. Run `flutter build apk --debug` for the Android build in addition to the Web command above.
+| Symptom | Action |
+| --- | --- |
+| 503 not_configured | Run scripts/dev.py check. Login needs encryption/DB plus Supabase; registration needs Supabase. Health is not readiness. |
+| 503 database_unavailable | Privately check runtime URL, server, schema head and grants. Do not switch runtime to owner credentials. |
+| 503 auth_unavailable | Check correct development project, networking, provider/email limits. Preserve fail-closed behavior. |
+| 401 after login | Check email confirmation, project match and ES256/RS256. Never enable HS256. |
+| HTML instead of JSON | Supply the exact API_BASE_URL above and restart Flutter. Inspect Request URL. |
+| CORS/Origin rejection | Use consistent localhost hostnames and exact allowed origins. Preserve CSRF. |
+| Cookie missing on HTTP | Local development uses MEDLM_COOKIE_SECURE=false; public HTTPS must use true. |
+| Setup refuses existing objects | Stop and inspect with the administrator; never blindly drop objects or replace keys. |
 
-Before release, manually check Android TalkBack and browser screen-reader reading order, status announcements, keyboard focus, software-keyboard layout and 200% text/zoom in both themes and all three languages. Obtain human review of Hindi/Telugu UI copy. Automated widget accessibility tests and successful builds do not replace these checks or validate live provider behavior. iOS and desktop remain unvalidated in this chunk.
+See [deployment preparation](docs/DEPLOYMENT.md) before public testing.
+No local build or synthetic fixture establishes clinical readiness.

@@ -1,57 +1,121 @@
 # MedLM AI
 
-India-first medication information and management application. **Phase 3A online manual management**: add/edit/remove medications, preview and activate schedules, view today’s doses, record taken/skipped actions and corrections, and view history. No AI, medicine identification, prescription processing, medical-image uploads or notification delivery is enabled. No medical records are seeded.
+[![Engineering preview checks](https://github.com/sirius287/med-lm-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/sirius287/med-lm-AI/actions/workflows/ci.yml)
 
-Shared Flutter Android/iOS/web client, FastAPI backend, PostgreSQL migrations and Supabase authentication adapters. All clinical and AI credentials belong on the backend. Windows/macOS are future native targets; web works as the desktop client in this phase.
+MedLM is an **engineering preview** of an India-first medication-management app.
+It records user-entered instructions and schedules; it does not diagnose,
+prescribe, verify medicine identity or give medical advice. It is **not clinically
+validated**. No public deployment has been verified.
 
-## Repository
+## Current capabilities
+
+| Capability | Actual boundary |
+| --- | --- |
+| Email/password accounts | Supabase identity; FastAPI browser sessions, HttpOnly cookies, CSRF, logout/revocation and expiry. Requires a configured development project and live validation. |
+| Manual medications | Add/list/edit/delete, schedule preview/activation, today's doses, taken/skipped and append-only corrections/history. Online only, no notification delivery. |
+| Shared Flutter client | Android/iOS/Web source, English/Hindi/Telugu, themes, keyboard/semantics and large-text tests. iOS requires macOS validation; native desktop is future work. |
+| Synthetic analysis | Explicitly injected test harness only: registered fixtures, immutable extraction, mandatory transcription review and reports with all 24 medical values unavailable/null. Absent from normal app/API navigation. |
+| Unavailable | Real medical uploads/OCR, live AI, medicine lookup/verification, patient medical reports, automatic medication creation, notifications, offline writes and deployment. |
+
+Human transcription confirmation is not medical verification. Indian medicine-data
+licensing and clinical release gates are unresolved. Never put real patient data,
+credentials or private logs into public issues, fixtures, demos or screenshots.
+
+## Run locally
+
+Follow **[SETUP_WINDOWS.md](SETUP_WINDOWS.md)**, the authoritative beginner setup
+guide with private prompts, isolated database provisioning and Chrome troubleshooting.
+Use Flutter **3.41.7** / Dart **3.11.5**, Python **3.13**, PostgreSQL **18** and
+uv **0.11.6**. Dependencies are locked. Android also needs Java/SDK; iOS needs
+macOS/Xcode. Node and AI credentials are unnecessary.
+
+~~~powershell
+uv sync --frozen
+uv run python scripts/dev.py init-db
+uv run python scripts/dev.py configure-auth
+uv run python scripts/dev.py check --database
+~~~
+
+The interactive initializer creates ONLY absent MedLM resources on localhost:5432,
+applies the actual migration head and normal-runtime grants, and generates stable,
+separate cryptographic keys without displaying them. It refuses existing
+resources/settings. Owner credentials never enter the runtime .env.
+
+Terminal A, repository root:
+
+~~~powershell
+$env:PYTHONPATH = 'services/api;packages/backend_domain'
+uv run uvicorn medlm_api.main:app --host 127.0.0.1 --port 8000 --no-access-log --no-proxy-headers
+~~~
+
+Terminal B:
+
+~~~powershell
+Set-Location apps/medlm
+flutter pub get --enforce-lockfile
+flutter run -d chrome --web-port 8080 --dart-define=API_BASE_URL=http://localhost:8000/api/v1
+~~~
+
+Settings load root .env when launched from the repository root; process variables
+override it and empty placeholders are ignored. [.env.example](.env.example)
+lists exact MEDLM_ names. The populated .env stays ignored. Do not use an owner
+database URL at runtime or compile backend keys into Flutter. Native auth also
+needs public SUPABASE_URL/SUPABASE_PUBLISHABLE_KEY Dart defines; web uses FastAPI.
+
+GET /health is liveness, not readiness. Signed-out GET /api/v1/auth/session returns
+the expected 401 authentication_required. Production requires HTTPS, secure cookies
+and distinct encryption keys. JWT verification accepts ES256/RS256, not HS256.
+
+## Repository and architecture
 
 | Path | Purpose |
 | --- | --- |
-| `apps/medlm` | Flutter router, Riverpod DI, configuration, API/auth adapters, themes and en/hi/te localization |
-| `services/api/medlm_api` | FastAPI application, authentication, database and image foundations |
-| `services/api/tests` | Unit and PostgreSQL integration tests |
-| `packages/backend_domain` | AI, source, repository and storage interfaces; disabled market policies |
-| `database` | Alembic migration and least-privilege grants |
-| `contracts/openapi.json` | Generated implemented API contract |
-| `docs/adr` | Implementation decisions and scope changes |
-| `scripts` | Contract export and local test-role setup |
-| `services/worker`, `infra`, `evals` | Reserved future components, not implemented services |
+| apps/medlm | Flutter routing, Riverpod, shared UI and platform adapters |
+| services/api/medlm_api | FastAPI, sessions, owner-scoped services/repositories |
+| packages/backend_domain | Typed domain and medical-safety contracts |
+| database/migrations | Single Alembic chain; current head 0009_human_review |
+| database/runtime_grants.sql | Auth/manual-management grants only |
+| contracts | Normal API and explicitly injected synthetic test contracts |
+| scripts | Guarded setup, isolated tests, parity/security checks |
+| docs/adr | Reviewed design decisions |
+| infra | Deployment preparation, no provisioned cloud resources |
 
-## Prerequisites and setup
+PostgreSQL is the source of truth. Runtime has no superuser, database/role creation,
+RLS bypass or table ownership. Composite ownership, FORCE RLS, transactions,
+idempotency and versions enforce isolation. Public hosting must serve Flutter
+and /api/v1 through the **same HTTPS origin** for the existing same-site cookies.
 
-Validated SDKs: Flutter 3.41.7 / Dart 3.11.5, Python 3.13.15, uv and PostgreSQL 18.6. Android requires Android Studio, SDK/build tools, Java and accepted SDK licenses. iOS requires macOS/Xcode and signing. Node/npm are not needed to run this foundation.
+See [architecture](ARCHITECTURE.md), [API](API_SPEC.md), [schema](DATABASE_SCHEMA.md),
+[security](SECURITY.md), and [development plan](DEVELOPMENT_PLAN.md).
+Historical phase reports retain their dated validation records.
 
-See [SETUP_WINDOWS.md](SETUP_WINDOWS.md) for exact PowerShell commands, database roles, environments, backend/frontend startup and Android development. Dependencies are pinned in `uv.lock` and `apps/medlm/pubspec.lock`. Do not upgrade them independently without validation.
+## Validate and contribute
 
-## Configuration
+~~~powershell
+uv run python scripts/test_backend.py --pg-bin 'C:\Program Files\PostgreSQL\18\bin'
+uv run ruff check services packages database scripts
+uv run ruff format --check services packages database scripts
+uv run python scripts/check_localization.py
+uv run python scripts/check_repository.py
+Set-Location apps/medlm
+flutter analyze
+flutter test
+flutter build web --release --dart-define=APP_ENV=production
+flutter build apk --debug
+~~~
 
-Copy `config/backend.env.template` to `.env` and populate only what is needed. Leave optional settings absent (remove blank URL/key lines) to run the health-only shell. `.env` and all `.env.*` files are ignored.
+The backend runner verifies a NEW disposable local cluster before any write;
+existing services/databases remain untouched. Plain pytest without test URLs
+skips database coverage. See the Windows guide/CI for contract parity commands.
 
-| Backend variable | Meaning |
-| --- | --- |
-| `MEDLM_ENVIRONMENT` | development, test or production |
-| `MEDLM_DATABASE_URL` | Secret psycopg SQLAlchemy runtime connection; migration commands use owner connection |
-| `MEDLM_SUPABASE_URL`, `MEDLM_SUPABASE_PUBLISHABLE_KEY` | Supabase project URL and public API key; never a service-role key |
-| `MEDLM_SESSION_ENCRYPTION_KEY` | Fernet key protecting server-stored refresh/access tokens |
-| `MEDLM_MEDICATION_ENCRYPTION_KEY` | Separate server-only Fernet key for 24-hour manual mutation replay |
-| `MEDLM_CORS_ORIGINS` | JSON list of exact browser origins |
-| `MEDLM_COOKIE_SECURE` | true in HTTPS production |
-| `MEDLM_SESSION_TTL_SECONDS` | Absolute session lifetime, at most 86400 |
-| `MEDLM_OPENAI_API_KEY`, `MEDLM_OPENAI_MODEL` | Reserved server-only configuration, no calls in Phase 1 |
+The synthetic demonstration is an authenticated dependency-injected automated
+workflow in Flutter/backend tests, not a public demo account or authentication
+bypass. Physical-device accessibility and human translation review remain gates.
 
-Flutter compile-time settings: `API_BASE_URL`, `APP_ENV`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`. These are public values compiled into the app. Never put private keys in Dart defines. Browser defaults to same-origin `/api/v1`; development passes a backend URL. Native default `10.0.2.2` addresses the Android emulator host; physical devices and iOS need an explicit reachable URL. Only debug Android permits local HTTP.
+See [release checklist](docs/RELEASE_CHECKLIST.md), [deployment preparation](docs/DEPLOYMENT.md),
+[contributing](CONTRIBUTING.md), [private security disclosure](.github/SECURITY.md),
+and [release notes](CHANGELOG.md). Live auth and staging TLS/CORS/DB/browser checks
+are not established by a successful web/APK build.
 
-## Implemented API
-
-`GET /health` and `GET /api/v1/health` return `{"status":"ok","service":"medlm-api","version":"0.1.0"}`. This is liveness, not a promise that integrations are configured.
-
-`POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET/DELETE /api/v1/auth/session` and authenticated `GET /api/v1/health/database` implement the auth foundation. Browser mutations require allowed Origin; authenticated cookie mutations also require X-CSRF-Token. Native clients use Supabase bearer tokens. Missing configuration fails closed. Supabase must use supported asymmetric JWT signing (ES256/RS256); legacy HS256 is deliberately unsupported. Enable email confirmation and configure approved confirmation redirects in Supabase. No OAuth callback/UI is implemented yet.
-
-Manual `/api/v1/medications` CRUD, schedule preview/activation, `/occurrences/materialize`, `/occurrences`, dose events and `/history` are implemented. Domain POSTs require Idempotency-Key; medication PATCH/DELETE require If-Match. See [ADR 0006](docs/adr/0006-manual-medication-mvp.md). AI/prescription/normal upload endpoints stay absent. Generate contracts using `scripts/export_contract.py` and response bindings using `scripts/generate_manual_client.py`.
-
-## Tests and limitations
-
-Run `uv run pytest -q`; database tests require an explicitly configured disposable test database and runtime grants. Run Flutter `analyze`, `test`, `build web` and `build apk --debug` from `apps/medlm`. See [Phase 3A report](docs/PHASE_3A_REPORT.md) for current results and [PHASE_1_REPORT.md](PHASE_1_REPORT.md) for the historical baseline.
-
-Live Supabase authentication still requires credentials and validation. OpenAI and medicine-data accounts are unnecessary for this manual-only slice. Before real-user release, validate live authentication, device/browser accessibility, reviewed translations, TLS/CSP, key rotation, maintenance scheduling, backup/restore and privacy/erasure operations. Phase 2 implements database-backed authentication throttling and an isolated synthetic upload harness; it does not enable clinical uploads. Local tests and builds are not production-readiness evidence.
+Source licensing awaits the owner's decision; publication alone grants no
+open-source license. Dependency licenses are separate.

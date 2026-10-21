@@ -329,14 +329,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
-  String get welcome => 'Your medicine information, in one place.';
+  String get welcome => 'Your medication log, in one place.';
 
   @override
   String get intro =>
-      'A thoughtful space for medicine information and medication reminders.';
+      'Sign in to track manually entered medications, schedules and dose history.';
 
   @override
-  String get comingSoon => 'Medicine tools are coming in a later update.';
+  String get comingSoon =>
+      'AI analysis, medical-image uploads and notification delivery are unavailable in this preview.';
 
   @override
   String get theme => 'Appearance';

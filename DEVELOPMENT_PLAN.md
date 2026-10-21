@@ -1,6 +1,15 @@
 # MedLM AI development plan
 
-Current checkpoint (2026-10-18): HEAD is 1474f15 on main. Chunks 1-6 are committed;
+Current release effort (2026-10-22): inspected starting HEAD b8b28b0 on main with a
+clean tree. The Chunk 7 companion work is committed in b8b28b0 after the initial
+1474f15 portion. Phase 3B's seven synthetic engineering chunks are present; this
+does not enable clinical uploads or establish live Auth/deployment readiness.
+The owner has now authorized safe release preparation and tested coherent commits;
+external resource changes and uncertain publication targets still need approval.
+See docs/RELEASE_CHECKLIST.md for fresh evidence, external gates and progress.
+All dated validation/authorization paragraphs below remain historical records.
+
+Historical checkpoint (2026-10-18): HEAD is 1474f15 on main. Chunks 1-6 are committed;
 Chunk 6 is 7b3d4eb. Commit 1474f15 contains the initial Chunk 7 portion (22 files).
 The remaining 18 Chunk 7 companion files are still uncommitted. A follow-up companion
 commit is planned after validation and explicit human approval, preserving 1474f15.
