@@ -32,14 +32,23 @@ Starlette/httpx warning. Command: `uv run python scripts/test_backend.py --pg-bi
 'C:\Program Files\PostgreSQL\18\bin'`. Log:
 `.local/test-runs/79e1930c646748a1819bbf49d182b3e8/pytest.log`.
 Ruff, its formatting check (84 Python files), unchanged generated catalog parity
-and the supplementary current/history secret scan passed. Hosted corrective
-validation remains pending; the original hosted Flutter job passed, including
-Web and Android builds, while the original backend job failed as recorded above.
+and the supplementary current/history secret scan passed.
+
+The corrective commit `1429309` was published normally and its complete
+[hosted run passed](https://github.com/sirius287/med-lm-AI/actions/runs/39712515755).
+Ubuntu backend: **361 passed, 0 failed, 0 skipped**, 131.03 seconds, with the same
+deprecation warning. The new-cluster setup smoke, both dependency audits, Ruff,
+all API/client/catalog checks and 197-key localization parity passed. Ubuntu
+Flutter: analysis passed, **181 tests passed**, self-hosted production Web build
+passed (40.2s) and Android debug build passed (205.9s). Saved job logs:
+`.local/ci-job-119606919965.log` and `.local/ci-job-119606919627.log`.
+This supersedes the original failed hosted result without erasing that evidence.
 
 Additional corrected paths: AI_PIPELINE.md, SECURITY.md, ADR 0007,
 services/api/medlm_api/synthetic_fixtures.py, uploads.py, synthetic_extraction.py,
 services/api/medlm_api/fixtures/synthetic-v1.json,
 services/api/tests/test_fixture_portability.py and test_synthetic_extraction.py.
+The two release evidence documents complete the 11-path corrective commit.
 The original 45-file set below remains a historical record of the first two commits.
 
 ## Findings and smallest fixes
@@ -125,10 +134,10 @@ Anonymous Git main matched starting b8b28b0; a push dry run succeeded. Existing
 Git credentials were used in memory only for related read-only GitHub metadata;
 no value was printed or stored. No visibility change is authorized or performed.
 
-Commits `5a5b1d3` and `35967e2` were published to the verified origin/main by a
-normal fast-forward push. The original hosted Flutter job passed; the backend
-portability failure and local correction are recorded above. Corrective hosted CI
-remains pending. Publication of source does not establish that a staging app works.
+Commits `5a5b1d3`, `35967e2` and `1429309` were published to the verified
+origin/main by normal fast-forward pushes. The corrective hosted backend/Flutter
+run passed as recorded above. No branch history or repository visibility changed.
+Publication of source and passing CI do not establish that a staging app works.
 
 Still required: private developer DB/admin setup and Supabase settings; real
 registration/email/login/logout and browser-cookie validation; iOS/macOS tooling;
