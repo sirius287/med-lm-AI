@@ -21,6 +21,13 @@ SETUP_WINDOWS.md, docs/DEPLOYMENT.md and .github/SECURITY.md for setup, unresolv
 public-release gates and private disclosure. Never substitute an owner connection
 to hide a runtime privilege error.
 
+Auth dependency diagnostics (2026-10-22): provider-unavailable logs contain only
+fixed operation/reason labels, numeric upstream status and a small allowlist of
+provider error codes. Unknown codes are `unclassified`; provider messages, URLs,
+headers, request/response bodies, account identifiers and exception text are not
+recorded. Public authentication error responses stay generic. These diagnostics
+do not change rate limits, email confirmation, signature validation or sessions.
+
 > Chunk 7 (2026-10-15): synthetic Flutter UI requires explicit service injection and
 > the existing authenticated account scope; normal routes and authentication remain
 > unchanged. During revalidation for the same authenticated owner, sensitive workflow

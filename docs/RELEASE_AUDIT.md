@@ -174,6 +174,63 @@ Current primary references checked 2026-10-22:
 
 ## Publication and external gates
 
+### Safe Auth failure diagnosis (2026-10-22)
+
+The owner subsequently supplied the actual registration outcome: immediate
+`503 / auth_unavailable`. In the registration route this identifies the existing
+`SupabaseGateway._request` dependency-failure path, rather than `not_configured`,
+`database_unavailable` or local `rate_limited`. It does not establish which
+upstream cause occurred. No SMTP failure or successful account creation is assumed.
+
+Confirmed observability gap: upstream 429/5xx, transport errors, redirects and
+malformed JSON all returned the same deliberately generic public error without
+an actionable safe operator event. A new MockTransport regression set initially
+reported **14 failed / 2 passed** because the diagnostics were absent. The smallest
+fix logs only a fixed operation/reason, integer upstream status and an exact small
+allowlist of provider codes. Unknown/non-string codes become `unclassified`.
+Raw provider messages, headers, URLs, account data, bodies, tokens and exception
+text are excluded. Existing public status/code/retry behavior is unchanged;
+credentials rejection still returns the existing generic 401 without a diagnostic.
+No Auth policy, session, CSRF, rate-limit, database or clinical behavior changed.
+
+Commands/results after that fix:
+
+- `uv run pytest -q services/api/tests/test_auth_diagnostics.py
+  services/api/tests/test_diagnostics.py services/api/tests/test_foundation.py
+  --tb=short`: **31 passed**, 5.87s, one existing Starlette/httpx warning.
+- `uv run python scripts/test_backend.py --pg-bin
+  'C:\Program Files\PostgreSQL\18\bin'`: **377 passed, 0 failed, 0 skipped**,
+  503.14s, the same warning. Verified NEW isolated local cluster; no development
+  database/test target change. Log:
+  `.local/test-runs/e6b56161296244cba9ef26d89b60f566/pytest.log`.
+- `uv run ruff check services packages database scripts` passed;
+  `uv run ruff format --check services packages database scripts` passed
+  (85 Python files) after formatting only the new test file. An earlier formatting
+  check correctly reported that new file; that failure was corrected.
+- `uv run python scripts/check_repository.py --history` and all three
+  `scripts/export_contract.py` checks passed. `git diff --check` passed.
+- The specifically identified local MedLM API was restarted with the tested code,
+  from the correct root environment, with access logging disabled and proxy
+  headers untrusted.
+  Actual loopback checks: health 200, signed-out session JSON 401, synthetic
+  analyses/uploads 404, exact-origin CORS 200, existing Flutter HTML/bootstrap 200.
+  PostgreSQL and Flutter were not restarted. No automated account operation ran.
+
+The six intended paths are `services/api/medlm_api/auth.py`,
+`services/api/tests/test_auth_diagnostics.py`, `SECURITY.md`,
+`docs/SUPABASE_DEVELOPMENT.md` and these two release evidence documents.
+This is a safe diagnosis improvement, not evidence of successful live signup.
+The owner reported another error after a private retry. No provider-unavailable
+event was captured in the reloaded API log at that point; the current safe status
+or visible error still needs identifying. No mail/transport cause is inferred.
+Live confirmation/login/logout remain blocked.
+Flutter was unchanged, so its previously recorded results were not represented
+as newly rerun. No migrations, grants, dependencies or clinical routes were added.
+
+Official guidance checked via Context7 on 2026-10-22:
+[Supabase Auth error codes](https://supabase.com/docs/guides/auth/debugging/error-codes).
+Use documented error codes, not string matching on private error messages.
+
 The exact intended repository was independently verified as
 `sirius287/med-lm-AI`, public, unarchived, default branch main, with push permission.
 Anonymous Git main matched starting b8b28b0; a push dry run succeeded. Existing

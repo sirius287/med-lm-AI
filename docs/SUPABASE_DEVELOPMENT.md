@@ -100,3 +100,33 @@ Only mark live Auth verified after registration/confirmation/login/logout actual
 succeed. SMTP limits, an incompatible signing key, missing local setup or network
 failure remain distinct blockers. Use synthetic manual medication text only;
 clinical uploads and all AI/source-verification capabilities remain unavailable.
+
+## 8. Diagnose a generic registration 503 safely
+
+After `dev.py check --database` passes, a browser `503 / auth_unavailable` still
+does not identify the upstream cause. Restart FastAPI from the repository root
+after pulling code changes; the command in SETUP_WINDOWS.md disables access logs.
+The API terminal now emits an `auth_provider_unavailable` JSON event with only
+`operation`, `reason`, `upstream_status` and an allowlisted `provider_code`.
+The browser response intentionally stays generic. Never enable body/header dumps,
+paste raw provider logs or share request bodies, account details or credentials.
+
+- `upstream_error`, status 429 and `over_email_send_rate_limit` indicates provider
+  email throttling. Stop repeated registration attempts and follow the provider's
+  limits; do not disable confirmation or relax application throttling.
+- `over_request_rate_limit` indicates provider request throttling, not a missing
+  application encryption key. Respect the applicable provider limit.
+- Status 5xx / `unexpected_failure` requires inspecting the intended project's
+  Auth logs privately. It does not by itself distinguish mail configuration,
+  provider availability or provider-side database/custom-trigger errors. Do not
+  change local roles/grants or run cloud SQL on this evidence alone.
+- `transport_error`, `unexpected_redirect` and `invalid_response` identify other
+  dependency failure categories. Unknown provider codes remain `unclassified`;
+  no raw message or URL is logged to try to guess their meaning.
+
+Only share those safe event fields if asking for help. Supabase recommends using
+error codes rather than matching message text; see its
+[Auth error-code guide](https://supabase.com/docs/guides/auth/debugging/error-codes)
+(checked 2026-10-22). A read-only settings/JWKS success does not prove signup, mail
+delivery, login or application-session persistence. Verify the complete browser
+journey before marking live authentication as working.

@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import math
 import secrets
 from dataclasses import dataclass
@@ -14,6 +15,49 @@ from sqlalchemy import text
 from medlm_api.config import Settings
 from medlm_api.database import Database
 from medlm_api.errors import AppError, unavailable
+
+logger = logging.getLogger("medlm.auth")
+
+
+def _log_provider_unavailable(path: str, reason: str, response: httpx.Response | None = None):
+    # Only server-owned labels/codes may enter logs, never a URL, body or exception.
+    operation = {
+        "signup": "registration",
+        "token?grant_type=password": "password_login",
+        "token?grant_type=refresh_token": "session_refresh",
+        "logout?scope=local": "logout",
+        "user": "identity_check",
+        "settings": "settings",
+    }.get(path, "other")
+    allowed_codes = {
+        "over_email_send_rate_limit",
+        "over_request_rate_limit",
+        "request_timeout",
+        "unexpected_failure",
+    }
+    code = "unclassified"
+    if response is not None and reason == "upstream_error":
+        try:
+            body = response.json()
+        except ValueError:
+            body = None
+        if isinstance(body, dict):
+            for key in ("error_code", "code"):
+                value = body.get(key)
+                if isinstance(value, str) and value in allowed_codes:
+                    code = value
+                    break
+    logger.warning(
+        json.dumps(
+            {
+                "event": "auth_provider_unavailable",
+                "operation": operation,
+                "reason": reason,
+                "upstream_status": response.status_code if response is not None else None,
+                "provider_code": code,
+            }
+        )
+    )
 
 
 def digest(value: str) -> str:
@@ -82,12 +126,15 @@ class SupabaseGateway:
                 method, f"{s.supabase_url.rstrip('/')}/auth/v1/{path}", json=body, headers=headers
             )
         except httpx.HTTPError as exc:
+            _log_provider_unavailable(path, "transport_error")
             raise AppError(503, "auth_unavailable", "Authentication is unavailable.", True) from exc
         if response.status_code >= 500 or response.status_code == 429:
+            _log_provider_unavailable(path, "upstream_error", response)
             raise AppError(503, "auth_unavailable", "Authentication is unavailable.", True)
         if response.status_code >= 400:
             raise AppError(401, "authentication_failed", "Authentication could not be completed.")
         if response.status_code >= 300:
+            _log_provider_unavailable(path, "unexpected_redirect", response)
             raise AppError(503, "auth_unavailable", "Authentication is unavailable.", True)
         try:
             value = response.json() if response.content else {}
@@ -95,6 +142,7 @@ class SupabaseGateway:
                 raise ValueError()
             return value
         except ValueError as exc:
+            _log_provider_unavailable(path, "invalid_response", response)
             raise AppError(503, "auth_unavailable", "Authentication is unavailable.", True) from exc
 
     def register(self, email: str, password: str):
