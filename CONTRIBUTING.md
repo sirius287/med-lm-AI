@@ -15,4 +15,6 @@ patient images or medication histories. Use .github/SECURITY.md for private repo
 
 Translations need fluent human review. Medical translation validation is separate;
 automated key parity does not approve translations. No security support SLA or
-clinical validation is promised. Source licensing awaits the owner's decision.
+clinical validation is promised. Source code uses the [MIT License](LICENSE);
+preserve its notice and all applicable third-party notices. Dependencies and
+medicine datasets retain their separate licensing requirements.

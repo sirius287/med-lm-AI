@@ -74,6 +74,10 @@ Rotation needs the planned procedure in ADR 0003, not a startup key replacement.
 
 ## Configure your DEVELOPMENT Supabase Auth project privately
 
+For a dashboard walkthrough of an existing project, use
+[SUPABASE_DEVELOPMENT.md](docs/SUPABASE_DEVELOPMENT.md). It explains current signing
+key checks, private value entry and the default sender's team-address restrictions.
+
 No script changes Supabase settings or creates accounts. In the correct project's
 dashboard:
 

@@ -28,7 +28,7 @@ evidence and do not substitute for fresh validation.
 | R14 | Secret scan, dependency review and Python lint/format checks pass | Passed | Current/history supplementary scan, manual diff, 33 Python and 102 hosted Pub versions clear of known advisories; Ruff passed |
 | R15 | Reproducible backend/Flutter CI defined and locally checked | Passed | Immutable actions, pinned SDKs, static YAML/security and Compose checks; local command equivalents passed |
 | R16 | CI executes successfully on intended GitHub repository | Passed | [Corrective hosted run](https://github.com/sirius287/med-lm-AI/actions/runs/39712515755) on 1429309: 361 backend tests, 181 Flutter tests, analysis, parity/audits, Web and Android builds passed |
-| R17 | First-time setup, contribution, disclosure and release documentation complete | In progress | License requires owner decision |
+| R17 | First-time setup, contribution, disclosure and release documentation complete | Passed | Authoritative Windows/README/contribution/disclosure guides and owner-approved MIT source license; dependency/data licenses remain separate |
 | R18 | Same-origin HTTPS deployment configuration prepared and checked | In progress | Static config/Compose checks passed; Docker daemon stopped, image/TLS/CSP/runtime tests pending |
 | R19 | Reviewed commits published to verified GitHub destination | Passed | 5a5b1d3, 35967e2 and 1429309 pushed normally to the verified public sirius287/med-lm-AI/main |
 | R20 | Staging deployment and real authenticated browser smoke test verified | Blocked | Requires verified staging accounts, TLS, database, Auth and deployment authorization |
@@ -56,8 +56,8 @@ local resources. Upload/analysis grants are excluded from normal runtime setup.
 Live provider configuration is entered privately, never in issues, logs or chat.
 
 Local stages A-I: setup/security defects corrected and fresh validation recorded in
-[RELEASE_AUDIT.md](RELEASE_AUDIT.md). **15/20 criteria passed (75%)** after
-source publication and successful corrective local/hosted validation. Live developer
-Auth/database, licensing and staging evidence are separate
+[RELEASE_AUDIT.md](RELEASE_AUDIT.md). **16/20 criteria passed (80%)** after
+source publication, successful corrective local/hosted validation and the owner's
+MIT license decision. Live developer Auth/database and staging evidence are separate
 gates. The bounded Chrome attempt completed no tests; browser runtime remains
 unverified. No clinical validation implied.

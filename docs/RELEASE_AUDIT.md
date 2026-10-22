@@ -113,8 +113,18 @@ newer constrained package versions; no advisory justified a broad migration.
 Installed metadata reports FastAPI/pydantic-settings/SQLAlchemy/PyJWT MIT, Uvicorn
 BSD-3-Clause, psycopg LGPL-3.0-only, cryptography Apache-2.0 OR BSD-3-Clause,
 Pillow MIT-CMU, certifi MPL-2.0. Metadata is not a legal review. Preserve bundled
-third-party notices; source-license choice remains with the owner. No license
-for Indian medicine data is presumed.
+third-party notices. The owner explicitly approved MIT source licensing on
+2026-10-22; root LICENSE uses the standard [MIT text](https://opensource.org/license/mit)
+with the MedLM AI contributors notice. README and contribution guidance reflect
+that decision. Dependency licenses remain separate. No license for Indian medicine
+data is presumed.
+
+The owner confirmed an existing MedLM development Supabase project and reported
+its current algorithm as ES256 or RS256; no key/token was requested or received.
+`docs/SUPABASE_DEVELOPMENT.md` now provides a source-backed private
+dashboard walkthrough, including current-key compatibility and default SMTP
+team-address restrictions. No project was contacted or changed and no live Auth
+success is inferred. The Windows guide remains the authoritative local procedure.
 
 Current primary references checked 2026-10-22:
 [settings precedence](https://github.com/pydantic/pydantic-settings/blob/main/docs/index.md),
@@ -141,7 +151,7 @@ Publication of source and passing CI do not establish that a staging app works.
 
 Still required: private developer DB/admin setup and Supabase settings; real
 registration/email/login/logout and browser-cookie validation; iOS/macOS tooling;
-physical-device accessibility; human translation review; source license decision;
+physical-device accessibility; human translation review;
 verified staging accounts/region/cost/TLS, proxy trust, container builds, backups,
 maintenance, erasure/privacy/India release review and real staging smoke tests.
 Docker Desktop's daemon is stopped and browser automation has no enabled surfaces;

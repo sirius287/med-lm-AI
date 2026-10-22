@@ -25,6 +25,7 @@ credentials or private logs into public issues, fixtures, demos or screenshots.
 
 Follow **[SETUP_WINDOWS.md](SETUP_WINDOWS.md)**, the authoritative beginner setup
 guide with private prompts, isolated database provisioning and Chrome troubleshooting.
+For an existing Auth project, see the [Supabase dashboard walkthrough](docs/SUPABASE_DEVELOPMENT.md).
 Use Flutter **3.41.7** / Dart **3.11.5**, Python **3.13**, PostgreSQL **18** and
 uv **0.11.6**. Dependencies are locked. Android also needs Java/SDK; iOS needs
 macOS/Xcode. Node and AI credentials are unnecessary.
@@ -117,5 +118,6 @@ See [release checklist](docs/RELEASE_CHECKLIST.md), [deployment preparation](doc
 and [release notes](CHANGELOG.md). Live auth and staging TLS/CORS/DB/browser checks
 are not established by a successful web/APK build.
 
-Source licensing awaits the owner's decision; publication alone grants no
-open-source license. Dependency licenses are separate.
+Source code is licensed under the [MIT License](LICENSE), approved by the owner.
+Dependency licenses and medicine-data licensing are separate; preserve their
+notices. A software license does not establish clinical validation.
