@@ -71,9 +71,10 @@ CSRF/RLS or changing the clinical pipeline. No external Auth project was contact
 
 ## Fresh commands and actual results
 
-All PostgreSQL writes/migrations used verified NEW disposable local clusters.
-The running service on port 5432 and other projects' databases were not used.
-The actual root `.env` remains absent; generated test env files are ignored.
+All automated test PostgreSQL writes/migrations used verified NEW disposable local
+clusters. The service on port 5432 and other projects' databases were not used by tests.
+The root `.env` was absent during this initial automated validation; generated test
+env files were ignored. Subsequent operator setup is recorded below.
 
 | Command (from repository root unless stated) | Actual result |
 | --- | --- |
@@ -126,6 +127,27 @@ dashboard walkthrough, including current-key compatibility and default SMTP
 team-address restrictions. No project was contacted or changed and no live Auth
 success is inferred. The Windows guide remains the authoritative local procedure.
 
+Afterward, the owner privately completed `scripts/dev.py init-db`. The actual
+`uv run python scripts/dev.py check --database` returned exit 0: restricted local
+runtime identity/grants, role flags and FORCE RLS passed read-only, with complete
+offline configuration. Root `.env` now exists and remains ignored/untracked; its
+values were not printed or changed by the audit. No existing unrelated database
+was touched. Live Supabase account/browser authentication is still unverified.
+
+The owner's existing MedLM API on loopback port 8000 was preserved. A separate
+loopback Flutter web server was started with the documented API_BASE_URL. Actual
+HTTP checks against these running processes returned health JSON 200, signed-out
+session JSON 401/authentication_required, exact-origin CORS preflight 200, normal
+analysis/uploads 404 and Flutter shell HTML 200 with its bootstrap. No account
+credentials were submitted and no browser-runtime/login success is inferred.
+
+With this private development configuration present, the isolated full command
+was rerun: **361 passed, 0 failed, 0 skipped**, 299.47 seconds and the same one
+Starlette/httpx warning. Its NEW disposable cluster/log directory was
+`.local/test-runs/7e3b58dec62f4b55beedfe1ebb1f68a0`. The actual development database
+was not a test target. This is additional isolation regression evidence, not a
+live Supabase account test.
+
 Current primary references checked 2026-10-22:
 [settings precedence](https://github.com/pydantic/pydantic-settings/blob/main/docs/index.md),
 [PostgreSQL initialization](https://www.postgresql.org/docs/18/app-initdb.html),
@@ -149,7 +171,7 @@ origin/main by normal fast-forward pushes. The corrective hosted backend/Flutter
 run passed as recorded above. No branch history or repository visibility changed.
 Publication of source and passing CI do not establish that a staging app works.
 
-Still required: private developer DB/admin setup and Supabase settings; real
+Still required: live development Supabase/project checks and real
 registration/email/login/logout and browser-cookie validation; iOS/macOS tooling;
 physical-device accessibility; human translation review;
 verified staging accounts/region/cost/TLS, proxy trust, container builds, backups,

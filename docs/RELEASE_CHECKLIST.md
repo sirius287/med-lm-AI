@@ -15,8 +15,8 @@ evidence and do not substitute for fresh validation.
 | R01 | Actual feature inventory and unavailable medical capabilities documented | Passed | README inventory and visible localized preview limits |
 | R02 | Safe configuration diagnostics and secret generation tested | Passed | Focused config tests plus real isolated setup smoke |
 | R03 | Guarded local database initialization and migration tooling tested | Passed | New isolated cluster: non-superuser owner migration and restricted runtime login/grants |
-| R04 | Real local runtime database provisioned and permissions verified | Blocked | Requires private local administrator authentication |
-| R05 | Real Supabase email confirmation, login and logout verified | Blocked | Development project identity/configuration and a privately entered test account required |
+| R04 | Real local runtime database provisioned and permissions verified | Passed | Owner ran the private initializer; actual `dev.py check --database` passed local runtime identity/grants/restrictions/FORCE RLS read-only |
+| R05 | Real Supabase email confirmation, login and logout verified | Blocked | Offline settings check passes; actual development-project checks and private account/browser journey remain required |
 | R06 | Full backend suite passes on an isolated local PostgreSQL target | Passed | Corrective full run: 361 passed/0 failed/0 skipped; historical 350-test run retained in audit |
 | R07 | Migration, ownership, RLS, grants and authentication concurrency regressions pass | Passed | Real PostgreSQL suite and separate owner/runtime setup smoke |
 | R08 | Flutter unit/widget regression suite passes | Passed | Fresh 181 passed after preview copy correction |
@@ -56,8 +56,8 @@ local resources. Upload/analysis grants are excluded from normal runtime setup.
 Live provider configuration is entered privately, never in issues, logs or chat.
 
 Local stages A-I: setup/security defects corrected and fresh validation recorded in
-[RELEASE_AUDIT.md](RELEASE_AUDIT.md). **16/20 criteria passed (80%)** after
+[RELEASE_AUDIT.md](RELEASE_AUDIT.md). **17/20 criteria passed (85%)** after
 source publication, successful corrective local/hosted validation and the owner's
-MIT license decision. Live developer Auth/database and staging evidence are separate
+MIT license decision and private local database setup. Live Auth and staging evidence are separate
 gates. The bounded Chrome attempt completed no tests; browser runtime remains
 unverified. No clinical validation implied.
