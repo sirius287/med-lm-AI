@@ -67,7 +67,8 @@ The original 45-file set below remains a historical record of the first two comm
 | Deployment risk / high, still gated | No verified staging target, live Auth, TLS/browser or backup/erasure evidence. Existing SameSite=Lax cookies require same-origin frontend/API. | Same-origin Caddy/API container preparation, explicit secret interpolation and private API port. Do not deploy yet. Proxy address trust/per-client throttling, container builds, CSP/browser and operational gates remain explicit. |
 
 No evidence justified replacing Flutter/FastAPI/PostgreSQL/Supabase, weakening JWT,
-CSRF/RLS or changing the clinical pipeline. No external Auth project was contacted.
+CSRF/RLS or changing the clinical pipeline. No external Auth project was contacted
+during the initial offline audit; later authorized read-only checks are recorded below.
 
 ## Fresh commands and actual results
 
@@ -121,11 +122,11 @@ that decision. Dependency licenses remain separate. No license for Indian medici
 data is presumed.
 
 The owner confirmed an existing MedLM development Supabase project and reported
-its current algorithm as ES256 or RS256; no key/token was requested or received.
+its current algorithm as ES256 or RS256; no key/token was requested or received in chat.
 `docs/SUPABASE_DEVELOPMENT.md` now provides a source-backed private
 dashboard walkthrough, including current-key compatibility and default SMTP
-team-address restrictions. No project was contacted or changed and no live Auth
-success is inferred. The Windows guide remains the authoritative local procedure.
+team-address restrictions. The guide itself does not contact/change a project or
+prove live Auth success. The Windows guide remains the authoritative local procedure.
 
 Afterward, the owner privately completed `scripts/dev.py init-db`. The actual
 `uv run python scripts/dev.py check --database` returned exit 0: restricted local
@@ -147,6 +148,19 @@ Starlette/httpx warning. Its NEW disposable cluster/log directory was
 `.local/test-runs/7e3b58dec62f4b55beedfe1ebb1f68a0`. The actual development database
 was not a test target. This is additional isolation regression evidence, not a
 live Supabase account test.
+
+After the owner explicitly confirmed the privately configured development target,
+two read-only Auth metadata requests passed: JWKS HTTP 200 with one ES256 public
+key, and Auth settings HTTP 200 with email enabled, signup allowed and email
+confirmation required. Only status/allowlisted flags were emitted; URL/key values,
+tokens and account records were not printed. No account or project setting was
+created/changed by these requests. The owner subsequently reported a registration
+or confirmation-email failure in Chrome; its precise outcome/cause is pending
+clarification. These metadata checks do not establish successful registration or login.
+The same GET settings and JWKS parsing also passed through the actual
+`SupabaseGateway` / `PyJWKClient` path, without an account operation. The owner then
+clarified that registration displayed an immediate error; its HTTP status/safe
+error code is still required. No SMTP cause or successful signup is assumed.
 
 Current primary references checked 2026-10-22:
 [settings precedence](https://github.com/pydantic/pydantic-settings/blob/main/docs/index.md),
