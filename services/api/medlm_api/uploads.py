@@ -6,7 +6,7 @@ import json
 import secrets
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
-from typing import Literal
+from typing import Callable, Literal
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -128,6 +128,15 @@ class SyntheticUploads:
             raise ValueError("Controlled synthetic fixtures and bounded retention required")
         self.storage, self.allowed = storage, allowed_checksums
         self.ttl, self.clock = ttl_seconds, clock
+        self._canonicalize: Callable[[str, bytes], bytes] | None = None
+
+    def bind_fixture_images(self, checksums, canonicalize):
+        """Server assembly only; no request/setting can configure this boundary."""
+        if checksums != self.allowed or not callable(canonicalize):
+            raise ValueError("Canonical fixtures must match the synthetic upload allowlist")
+        if self._canonicalize is not None and self._canonicalize != canonicalize:
+            raise ValueError("Canonical fixture binding cannot be replaced")
+        self._canonicalize = canonicalize
 
     @contextmanager
     def owned(self, db, principal):
@@ -287,6 +296,12 @@ class SyntheticUploads:
             clean = validate_image(
                 data, row.mime, settings.max_image_bytes, settings.max_image_pixels
             )
+            if self._canonicalize is not None:
+                clean = self._canonicalize(checksum, clean)
+                if not isinstance(clean, bytes):
+                    raise TypeError("Canonical fixture boundary must return bytes")
+                if len(clean) > settings.max_image_bytes:
+                    raise AppError(413, "image_size", "Decoded image exceeds the permitted size.")
             obj = sql(
                 conn, "SELECT * FROM medlm.upload_objects WHERE upload_id=:id", id=upload_id
             ).one()

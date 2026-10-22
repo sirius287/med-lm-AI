@@ -17,7 +17,7 @@ evidence and do not substitute for fresh validation.
 | R03 | Guarded local database initialization and migration tooling tested | Passed | New isolated cluster: non-superuser owner migration and restricted runtime login/grants |
 | R04 | Real local runtime database provisioned and permissions verified | Blocked | Requires private local administrator authentication |
 | R05 | Real Supabase email confirmation, login and logout verified | Blocked | Development project identity/configuration and a privately entered test account required |
-| R06 | Full backend suite passes on an isolated local PostgreSQL target | Passed | 350 passed/0 failed/0 skipped; 3 later focused release-scanner tests passed separately |
+| R06 | Full backend suite passes on an isolated local PostgreSQL target | Passed | Corrective full run: 361 passed/0 failed/0 skipped; historical 350-test run retained in audit |
 | R07 | Migration, ownership, RLS, grants and authentication concurrency regressions pass | Passed | Real PostgreSQL suite and separate owner/runtime setup smoke |
 | R08 | Flutter unit/widget regression suite passes | Passed | Fresh 181 passed after preview copy correction |
 | R09 | Flutter analysis passes | Passed | No issues |
@@ -27,10 +27,10 @@ evidence and do not substitute for fresh validation.
 | R13 | Local API/web smoke test returns expected JSON/401 and HTML boundaries | Passed | Actual TCP/static HTTP checks; browser runtime/live sign-in not verified |
 | R14 | Secret scan, dependency review and Python lint/format checks pass | Passed | Current/history supplementary scan, manual diff, 33 Python and 102 hosted Pub versions clear of known advisories; Ruff passed |
 | R15 | Reproducible backend/Flutter CI defined and locally checked | Passed | Immutable actions, pinned SDKs, static YAML/security and Compose checks; local command equivalents passed |
-| R16 | CI executes successfully on intended GitHub repository | In progress | Push and remote workflow execution pending; access verified |
+| R16 | CI executes successfully on intended GitHub repository | In progress | First hosted Flutter job passed; backend found a cross-platform PNG fixture defect. Corrective local 361-test run passed; corrective hosted run pending |
 | R17 | First-time setup, contribution, disclosure and release documentation complete | In progress | License requires owner decision |
 | R18 | Same-origin HTTPS deployment configuration prepared and checked | In progress | Static config/Compose checks passed; Docker daemon stopped, image/TLS/CSP/runtime tests pending |
-| R19 | Reviewed commits published to verified GitHub destination | In progress | Public sirius287/med-lm-AI/main and push permission verified; local validation complete, publication pending |
+| R19 | Reviewed commits published to verified GitHub destination | Passed | 5a5b1d3 and 35967e2 pushed normally to the verified public sirius287/med-lm-AI/main |
 | R20 | Staging deployment and real authenticated browser smoke test verified | Blocked | Requires verified staging accounts, TLS, database, Auth and deployment authorization |
 
 ## Current product boundary
@@ -56,6 +56,8 @@ local resources. Upload/analysis grants are excluded from normal runtime setup.
 Live provider configuration is entered privately, never in issues, logs or chat.
 
 Local stages A-I: setup/security defects corrected and fresh validation recorded in
-[RELEASE_AUDIT.md](RELEASE_AUDIT.md). **13/20 criteria passed (65%)** at this
-pre-publication snapshot. Live developer Auth/database, licensing, hosted CI,
-publication and staging evidence are separate gates. No clinical validation implied.
+[RELEASE_AUDIT.md](RELEASE_AUDIT.md). **14/20 criteria passed (70%)** after
+source publication and the local portability correction. Live developer
+Auth/database, licensing, successful hosted CI and staging evidence are separate
+gates. The bounded Chrome attempt completed no tests; browser runtime remains
+unverified. No clinical validation implied.

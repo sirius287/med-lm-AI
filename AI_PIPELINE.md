@@ -1,5 +1,14 @@
 # MedLM AI extraction and verification pipeline
 
+Release portability correction (2026-10-22): server-owned canonical synthetic
+byte pairs preserve the already registered fixture IDs/revision/both hashes across
+PNG encoders. Full existing upload validation precedes the one-time, exact-
+allowlisted synthetic canonicalization; normalized content must match and clean
+references contain no ancillary/trailing metadata. Actual stored adapter bytes
+still match the immutable sanitized hash. Default uploads/route gates and all
+review, uncertainty, retention and verification semantics are unchanged. See
+ADR 0007; these packaged fixtures are non-authoritative test data, not medical evidence.
+
 > Chunk 7 (2026-10-15): an explicitly injected Flutter test workflow selects only
 > generated registered fixtures and exercises the existing deterministic extraction,
 > mandatory review and report boundaries. UI labels support English/Hindi/Telugu;

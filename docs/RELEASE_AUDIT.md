@@ -6,6 +6,42 @@ Audit started 2026-10-21; final local checks 2026-10-22. Starting HEAD was
 review, report, medication, session or ownership implementation was rewritten.
 This is engineering evidence, not clinical validation or a public deployment.
 
+## Hosted portability correction
+
+Commits 5a5b1d3 and 35967e2 were published by normal fast-forward push to the
+verified existing public repository/main, without visibility/history changes.
+[Initial hosted CI](https://github.com/sirius287/med-lm-AI/actions/runs/39686545036)
+exposed one real portability failure: **352 backend tests passed, 1 failed** in
+strict bundled fixture parity. All nine PNGs had identical decoded pixels but
+different compressed bytes between Windows zlib-ng and Linux zlib. This failure
+was not skipped, ignored or fixed by relaxing parity or hash comparisons.
+
+The corrective implementation freezes the existing 11 registered original/clean
+image pairs in a server-owned synthetic manifest; all original fixture IDs,
+revision numbers and both hashes remain unchanged. Full existing image validation
+precedes an explicitly injected, allowlist-matched canonicalizer. Registration
+compares fully sanitized content and rejects metadata/trailing chunks in clean
+references. The default upload path, auth/RLS, retention/deletion and clinical
+gates are unchanged. No migrations, grants, API contracts or Flutter catalog
+content changes are required.
+
+Focused results: **9 pure contract/portability tests passed**, then **77 upload/
+extraction tests passed** on a new disposable cluster. The corrective full local
+run passed **361 tests, 0 failed, 0 skipped** in 363.38 seconds, with the existing
+Starlette/httpx warning. Command: `uv run python scripts/test_backend.py --pg-bin
+'C:\Program Files\PostgreSQL\18\bin'`. Log:
+`.local/test-runs/79e1930c646748a1819bbf49d182b3e8/pytest.log`.
+Ruff, its formatting check (84 Python files), unchanged generated catalog parity
+and the supplementary current/history secret scan passed. Hosted corrective
+validation remains pending; the original hosted Flutter job passed, including
+Web and Android builds, while the original backend job failed as recorded above.
+
+Additional corrected paths: AI_PIPELINE.md, SECURITY.md, ADR 0007,
+services/api/medlm_api/synthetic_fixtures.py, uploads.py, synthetic_extraction.py,
+services/api/medlm_api/fixtures/synthetic-v1.json,
+services/api/tests/test_fixture_portability.py and test_synthetic_extraction.py.
+The original 45-file set below remains a historical record of the first two commits.
+
 ## Findings and smallest fixes
 
 | Classification / severity | Evidence and practical impact | Remediation and regression |
@@ -89,9 +125,10 @@ Anonymous Git main matched starting b8b28b0; a push dry run succeeded. Existing
 Git credentials were used in memory only for related read-only GitHub metadata;
 no value was printed or stored. No visibility change is authorized or performed.
 
-At this pre-publication record, commits/push and remote CI are still pending.
-See the live GitHub Actions status and subsequent Git history for publication
-evidence. Local checks do not establish that hosted CI or a staging app works.
+Commits `5a5b1d3` and `35967e2` were published to the verified origin/main by a
+normal fast-forward push. The original hosted Flutter job passed; the backend
+portability failure and local correction are recorded above. Corrective hosted CI
+remains pending. Publication of source does not establish that a staging app works.
 
 Still required: private developer DB/admin setup and Supabase settings; real
 registration/email/login/logout and browser-cookie validation; iOS/macOS tooling;
@@ -100,6 +137,13 @@ verified staging accounts/region/cost/TLS, proxy trust, container builds, backup
 maintenance, erasure/privacy/India release review and real staging smoke tests.
 Docker Desktop's daemon is stopped and browser automation has no enabled surfaces;
 neither was started/claimed available. No live URL is invented.
+
+A separate bounded local attempt ran `flutter test --platform chrome
+test/foundation_test.dart --reporter expanded` from the client directory. It
+stalled at loading and completed **0 tests** before the 180-second timeout; only
+that attempt's own process tree was stopped. Logs:
+`.local/release-chrome-tests.log` and `.local/release-chrome-tests.err`.
+This is an unverified browser-runtime check, not a passing end-to-end test.
 
 All 24 report medical-information values stay unavailable/null. No normal medical
 upload, provider, source lookup, medical verification, automatic medication,

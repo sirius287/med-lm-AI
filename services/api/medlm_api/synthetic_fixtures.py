@@ -1,8 +1,13 @@
 """Explicit in-memory registration only; no paths, URLs, discovery or medical data."""
 
+import base64
 import hashlib
 import io
+import json
+import struct
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 from types import MappingProxyType
 from uuid import NAMESPACE_URL, uuid5
 
@@ -21,6 +26,48 @@ class FixtureInvalid(ValueError):
     pass
 
 
+@lru_cache(maxsize=1)
+def _canonical_images():
+    """Explicit package asset, never a client path, directory scan or download."""
+    document = json.loads(
+        (Path(__file__).parent / "fixtures/synthetic-v1.json").read_text(encoding="utf-8")
+    )
+    if document["schema_version"] != 1 or document["purpose"] != "synthetic_test_not_medical":
+        raise FixtureInvalid("Invalid canonical catalog")
+    records = {}
+    for row in document["fixtures"]:
+        if set(row) != {"descriptor", "original_base64", "sanitized_base64"}:
+            raise FixtureInvalid("Invalid canonical fixture")
+        descriptor = FixtureDescriptor.model_validate(row["descriptor"])
+        original = base64.b64decode(row["original_base64"], validate=True)
+        sanitized = base64.b64decode(row["sanitized_base64"], validate=True)
+        if (
+            descriptor.fixture_id in records
+            or descriptor.fixture_revision != 1
+            or sha256(original) != descriptor.original_sha256
+            or sha256(sanitized) != descriptor.sanitized_sha256
+        ):
+            raise FixtureInvalid("Canonical fixture identity mismatch")
+        records[descriptor.fixture_id] = (descriptor, original, sanitized)
+    return MappingProxyType(records)
+
+
+def _plain_png(data):
+    """Canonical server images may contain no ancillary/trailing metadata."""
+    if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return False
+    offset = 8
+    while offset + 12 <= len(data):
+        size = struct.unpack_from(">I", data, offset)[0]
+        kind = data[offset + 4 : offset + 8]
+        offset += size + 12
+        if offset > len(data) or kind not in (b"IHDR", b"IDAT", b"IEND"):
+            return False
+        if kind == b"IEND":
+            return size == 0 and offset == len(data)
+    return False
+
+
 @dataclass(frozen=True)
 class RegisteredFixture:
     descriptor: FixtureDescriptor
@@ -33,6 +80,7 @@ class FixtureRegistry:
     def __init__(self, fixtures: tuple[RegisteredFixture, ...]):
         registry = {}
         identities = set()
+        normalized = {}
         for item in fixtures:
             d = FixtureDescriptor.model_validate(item.descriptor.model_dump())
             if (
@@ -41,18 +89,32 @@ class FixtureRegistry:
                 or d.original_sha256 in registry
                 or sha256(item.original_bytes) != d.original_sha256
                 or sha256(item.sanitized_bytes) != d.sanitized_sha256
-                or validate_image(item.original_bytes, d.mime, 10485760, 40000000)
-                != item.sanitized_bytes
+                or not _plain_png(item.sanitized_bytes)
                 or item.observations.document_kind != d.document_kind
             ):
                 raise FixtureInvalid("Invalid fixture registration")
+            # zlib/zlib-ng encode identical pixels differently across hosts. Both
+            # original and canonical bytes still pass the full existing sanitizer.
+            clean = validate_image(item.original_bytes, d.mime, 10485760, 40000000)
+            reference = validate_image(item.sanitized_bytes, "image/png", 10485760, 40000000)
+            if clean != reference:
+                raise FixtureInvalid("Canonical image content mismatch")
+            normalized[d.original_sha256] = reference
             registry[d.original_sha256] = item
             identities.add((d.fixture_id, d.fixture_revision))
         self._registered = MappingProxyType(registry)
+        self._normalized = MappingProxyType(normalized)
 
     @property
     def original_hashes(self):
         return frozenset(self._registered)
+
+    def canonical_input(self, original_hash: str, normalized: bytes) -> bytes:
+        """Only an exact registered original AND equivalent sanitized content."""
+        item = self._registered.get(original_hash)
+        if item is None or normalized != self._normalized[original_hash]:
+            raise FixtureInvalid("Invalid canonical image binding")
+        return item.sanitized_bytes
 
     def resolve(self, original_hash: str, mime: str, kind: str, data: bytes) -> ExtractionRequest:
         item = self._registered.get(original_hash)
@@ -82,24 +144,31 @@ def controlled_fixture(
         raise FixtureInvalid("Unsupported fixture MIME")
     if mime != "image/png":
         identity += "_" + MIME_FORMATS[mime].lower()
-    image = Image.new("RGB", (640, 160), "white")
-    draw = ImageDraw.Draw(image)
-    draw.text((8, 8), "SYNTHETIC TEST ONLY - NOT MEDICAL INFORMATION", fill="black")
-    draw.text((8, 30), identity, fill="black")
     literal = "TEST ITEM A"
-    if not empty:
-        draw.text((8, 55), literal, fill="black")
-        if kind == "prescription":
-            draw.text((8, 80), "TEST LINE B", fill="black")
-            draw.text((8, 105), "Line A strength: STRENGTH TOKEN; dose: absent", fill="black")
-    output = io.BytesIO()
-    info = PngImagePlugin.PngInfo()
-    info.add_text("synthetic-fixture", identity + ":1")
-    image.save(
-        output, format=MIME_FORMATS[mime], **({"pnginfo": info} if mime == "image/png" else {})
-    )
-    original = output.getvalue()
-    sanitized = validate_image(original, mime, 10485760, 40000000)
+    canonical = _canonical_images().get(identity)
+    if canonical:
+        registered, original, sanitized = canonical
+        if registered.document_kind != kind or registered.mime != mime:
+            raise FixtureInvalid("Canonical document mismatch")
+    else:
+        # Additional local test descriptors are not silently added to the bundled catalog.
+        image = Image.new("RGB", (640, 160), "white")
+        draw = ImageDraw.Draw(image)
+        draw.text((8, 8), "SYNTHETIC TEST ONLY - NOT MEDICAL INFORMATION", fill="black")
+        draw.text((8, 30), identity, fill="black")
+        if not empty:
+            draw.text((8, 55), literal, fill="black")
+            if kind == "prescription":
+                draw.text((8, 80), "TEST LINE B", fill="black")
+                draw.text((8, 105), "Line A strength: STRENGTH TOKEN; dose: absent", fill="black")
+        output = io.BytesIO()
+        info = PngImagePlugin.PngInfo()
+        info.add_text("synthetic-fixture", identity + ":1")
+        image.save(
+            output, format=MIME_FORMATS[mime], **({"pnginfo": info} if mime == "image/png" else {})
+        )
+        original = output.getvalue()
+        sanitized = validate_image(original, mime, 10485760, 40000000)
 
     def field(raw=None):
         return dict(

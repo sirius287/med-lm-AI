@@ -121,6 +121,28 @@ def extract(client, a, body, key=None):
     return post(client, path(a) + f"/jobs/{a['job']['id']}/extract", body, key)
 
 
+def test_different_encoder_persists_only_registered_canonical_bytes(monkeypatch, request):
+    from test_fixture_portability import different_png_encoder
+
+    different_png_encoder(monkeypatch)
+    env = request.getfixturevalue("extraction_env")
+    client, _, _, engine, _ = env
+    a, body, item = prepared(env)
+    response = extract(client, a, body)
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["status"]["job"]["state"] == "completed"
+    assert result["revision"]["review_status"] == "unreviewed"
+    assert result["revision"]["verification"] == {"status": "unverified", "verified_at": None}
+    with engine.connect() as conn:
+        row = conn.execute(text("SELECT * FROM medlm.extraction_revisions")).mappings().one()
+        assert row["fixture_sha256"] == item.descriptor.original_sha256
+        assert row["sanitized_sha256"] == item.descriptor.sanitized_sha256
+        obj = conn.execute(text("SELECT * FROM medlm.upload_objects")).mappings().one()
+        assert obj["checksum_sha256"] == item.descriptor.sanitized_sha256
+        assert conn.scalar(text("SELECT count(*) FROM medlm.medications")) == 0
+
+
 @pytest.mark.parametrize("kind", ["strip", "bottle", "tube", "box", "prescription"])
 def test_registered_fixture_and_determinism(kind, monkeypatch):
     import socket

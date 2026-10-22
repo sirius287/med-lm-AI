@@ -1,5 +1,15 @@
 # MedLM AI security and privacy design
 
+Synthetic portability correction (2026-10-22): registered image pairs are frozen
+server assets, not client metadata. Both hashes and full decoding remain mandatory.
+Only explicit synthetic extraction assembly can bind a canonicalizer, once, to
+the identical upload allowlist. It verifies already sanitized content before using
+the known metadata-free PNG; unknown hashes/content and replacement bindings fail.
+Ordinary upload validation is unchanged. Owner/session/expiry/size and deletion
+checks still surround storage, and no normal upload or analysis route is enabled.
+Public generic fixture assets contain no user text; private uploads/reviews remain
+independently owned and subject to their existing erasure policy.
+
 Release preparation (2026-10-22): startup diagnostics expose only missing setting
 names, not values. Local setup refuses pre-existing MedLM resources/settings,
 separates migration owner/runtime, sends SCRAM verifiers in role DDL and generates

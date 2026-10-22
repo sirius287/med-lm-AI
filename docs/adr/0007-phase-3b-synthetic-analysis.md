@@ -1,5 +1,32 @@
 # ADR 0007: Phase 3B synthetic analysis contracts
 
+## Fixture portability correction (2026-10-22)
+
+Clean Ubuntu CI reproduced one strict catalog parity failure: Pillow's zlib and
+zlib-ng builds encode identical pixels differently. The reviewed fixture IDs,
+revision 1, original bytes and sanitized hashes must not be silently regenerated.
+The existing nine bundled fixtures and two registered format-test variants are
+therefore frozen as explicit original/sanitized byte pairs in the server-owned
+`medlm_api/fixtures/synthetic-v1.json`. This file is not medical evidence, a client
+manifest, a folder-discovery mechanism or automatic fixture registration.
+
+Registration still verifies both exact hashes, provenance, kind/MIME and revision.
+Both images pass the existing full decoder/sanitizer; their normalized content
+must match. Canonical sanitized PNGs additionally reject ancillary/trailing
+metadata. Only the explicitly assembled synthetic extraction harness binds a
+one-time canonicalizer to its exact upload checksum allowlist. Uploads still run
+the existing size/MIME/pixel/decode checks first, then compare validated content
+with the registered reference before storing its unchanged canonical bytes.
+Stored size bounds, ownership, auth, expiry, immutable hashes and deletion remain
+enforced. The default upload path and normal-app route gates are unchanged.
+
+Client filenames/labels/metadata cannot choose an image or override provenance.
+Unknown hashes/content and reconfiguration fail closed. Future shared fixture
+changes need explicit versioned registration; never regenerate revision 1 in
+place. Generic packaged test references are separate from users' owned, bounded
+upload copies, reviews and erasure. No live provider, clinical image or authority
+is introduced. Historical approvals and validation records below are preserved.
+
 Date: 2026-10-06; lifecycle update 2026-10-07. Base: f064621. Chunks 1/2 committed
 at edbadbc/abea49f. Chunk 3 is committed at 4775ed1; Chunk 4 at 97fa471.
 Chunk 5 human review is committed at 4ac50ca (2026-10-11).

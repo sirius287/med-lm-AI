@@ -95,6 +95,16 @@ class SyntheticExtraction:
         self.lifecycle, self.registry = lifecycle, registry
         self.adapter = adapter if adapter is not None else DisabledAstraAdapter()
 
+        def canonicalize(original_hash, normalized):
+            try:
+                return registry.canonical_input(original_hash, normalized)
+            except FixtureInvalid:
+                raise AppError(422, "fixture_invalid", SAFE_ERRORS["fixture_invalid"]) from None
+
+        # This exists only on the explicitly assembled synthetic harness. Full
+        # upload validation still precedes canonicalization; default uploads are unchanged.
+        lifecycle.uploads.bind_fixture_images(registry.original_hashes, canonicalize)
+
     def current(self, conn, principal, analysis_id, job_id, body, *, version, state):
         a, upload = self.lifecycle.load(conn, principal, analysis_id)
         self.lifecycle.available(a, upload)
